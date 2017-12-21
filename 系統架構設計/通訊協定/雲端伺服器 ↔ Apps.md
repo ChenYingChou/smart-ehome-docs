@@ -29,7 +29,6 @@
             }
         }
         ```
-        <br>
 
 1. Apps 送出控制命令給伺服器:
     * MQTT: `mqtt://server:port/public`
@@ -104,6 +103,5 @@
             "token": "__身份驗證令牌__"
         }
         ```
-        <br>
 
 1. 智慧控制 (連動)、排程: 一律在 Local Server 觸發執行，和雲端伺服器、Apps 無關。
