@@ -1,10 +1,6 @@
 ## 雲端伺服器 ↔ Apps
 
-1. Apps 可連雲端伺服器或本地伺服器 --> 如何自動判斷連接本地伺服器?
-
-1. login: UserName + Password 取得 Token。
-
-1. 取得組態 --> 產生專案，一次只監控一個專案，但專案可能跨多個 Local Server。
+1. Apps 連線伺服器取得身份驗證令牌及組態管理詳見 `通訊協定: Web API`。
 
 1. 伺服器回應狀態給 Apps: (當狀態改變)
     * REST API: `POST` `http://server:port/api`
@@ -102,5 +98,3 @@
             "token": "__身份驗證令牌__"
         }
         ```
-
-1. 智慧控制 (連動)、排程: 一律在 Local Server 觸發執行，和雲端伺服器、Apps 無關。
