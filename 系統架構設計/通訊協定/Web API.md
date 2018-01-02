@@ -30,9 +30,9 @@
     * Apps 送出 `POST` 資料如下:
 
         ```
-        s_id=本地伺服器ID
-        user=用戶ID
-        password=AES-CTR 加密(<server key>, <用戶密碼>) 再 base64 編碼
+        s_id=<本地伺服器ID>
+        user=<用戶ID>
+        password=<用戶密碼>
         ```
 
     * Web 回覆:
@@ -41,12 +41,7 @@
         {
             "s_id": "<伺服器ID>",
             "status": 0,                        // 0:成功, 非零:錯誤
-            "payload": "**msg**"                // 加密資料 或 錯誤訊息
-        }
-
-        // 登錄成功後解密 AES-CTR 解碼(<server key>, "**msg**" base64 解碼)` 為 JSON 如下:
-        {
-            "token": "__身份驗證令牌__"         // 送往 Server 要帶上此值
+            "payload": "__身份驗證令牌__"       // 身份驗證令牌 或 錯誤訊息
         }
         ```
 
@@ -139,4 +134,3 @@
             }
         }
         ```
-
