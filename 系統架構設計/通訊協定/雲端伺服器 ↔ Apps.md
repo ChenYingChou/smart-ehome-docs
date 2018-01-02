@@ -3,8 +3,6 @@
 1. Apps 連線伺服器取得身份驗證令牌及組態管理詳見 `通訊協定: Web API`。
 
 1. 伺服器回應狀態給 Apps: (當狀態改變)
-    * REST API: `POST` `http://server:port/api`
-
     * MQTT: `mqtt://server:port/reply/**客戶端ID**`
 
     * 回應狀態:
@@ -26,6 +24,8 @@
         ```
 
 1. Apps 送出控制命令給伺服器:
+    * REST API: `POST http://server:port/api`
+
     * MQTT: `mqtt://server:port/public`
 
     * 控制設備/功能為指定值:
