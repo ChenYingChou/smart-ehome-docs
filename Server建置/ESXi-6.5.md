@@ -17,6 +17,14 @@
 1. VMware ESXi 參考資源:
     * [下載 ESXi 6.5 及取得授權碼](http://www.virten.net/2016/11/free-esxi-6-5-how-to-download-and-get-license-keys/)
     * [VMware ESXi 6.5.0-Host Client 操作使用說明](https://ithelp.ithome.com.tw/articles/10184459)
+    * [How to disable/enable the CIM agent on the ESX/ESXi host](https://kb.vmware.com/s/article/1025757)
+        ```sh
+        # 當某些偵測感應不到時, 在 VM shell 執行命令如下:
+        esxcli system wbem set --enable true
+        chkconfig sfcbd-watchdog on
+        chkconfig sfcbd on
+        /etc/init.d/sfcbd-watchdog start
+        ```
     * [Lab VM Testing](http://maxlabvm.blogspot.tw/)
     <br>
 
