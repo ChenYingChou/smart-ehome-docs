@@ -1,4 +1,4 @@
-## syslog
+## syslog (udp port 514)
 
 1. 在 Linux firewall 主機 /etc/rsyslog.d/ 下新增檔案 `debug.conf`:
     ```conf
@@ -16,8 +16,8 @@
 
 1. 防火牆開啟允許誰連入使用 syslog udp port 514:
     ```sh
-    # 或加入 clearos 的客製檔案中: /etc/clearos/firewall.d/custom
-    iptables -t filter -I INPUT -s 允許的ip -p udp --dport 514 -j ACCEPT
+    # 在 clearos 的 `Custom Firewall` 中加入 (/etc/clearos/firewall.d/custom):
+    $IPTABLES -t filter -I INPUT -s 允許的ip -p udp --dport 514 -j ACCEPT
     ```
 
 1. 依 [RFC-5424](https://tools.ietf.org/html/rfc5424) 規定送出訊息: 以下以 [ABNF RFC-5234](https://tools.ietf.org/html/rfc5234) 表示
@@ -76,13 +76,13 @@
     NILVALUE        = "-"
     ```
 
-    * `VERSION` 目前 syslog 的版本為 1。
+    * `VERSION` 目前 syslog 的版本為 `"1"`。
 
     * `PRIVAL` 的值是由 `<priority> = <facility>.<level>` 轉換而來:
 
         * `<facility>`
 
-            | id | 值 || id | 值 |
+            | facility | 值 || facility | 值 |
             |:---:|:---:|-|:---:|:---:|
             | kern | 0 || ntp | 12 |
             | user | 1 || log audit | 13 |
@@ -99,7 +99,7 @@
 
         * `<level>`
 
-            | id | 值 || id | 值 |
+            | level | 值 || level | 值 |
             |:---:|:---:|-|:---:|:---:|
             | emerg | 0 || warning | 4 |
             | alert | 1 || notice | 5 |
@@ -108,7 +108,7 @@
 
         * `PRIVAL = <facility> 值 x 8 + <level> 值`，例如: `user.debug` 的 `PRIVAL` = 1 x 8 + 7 = 15。
 
-    * `TIMESTAMP` 以台北時區表示，例如: `2018-01-21T22:38:10+08:00`。
+    * `TIMESTAMP` 以本地台北時區表示，例如: `2018-01-21T22:38:10+08:00`。
 
 * 速成版組合完整訊息:
     ```
@@ -135,7 +135,7 @@
     <15>1 2018-01-21T22:38:10+08:00 hostname APP-NAME PID MSGID - message 1
     <15>1 2018-01-21T22:38:10+08:00 SAM-PC my-prog 123 456 - message 2
     <15>1 2018-01-21T22:38:10+08:00 SAM-PC my-prog - - - message 3
-    ^C (中止)
+    ^C (手動中止)
     ```
 
 * 伺服器端收到: 參考 /etc/rsyslog.d/debug.conf 中只接收 `user.debug`
@@ -144,4 +144,5 @@
     Jan 21 22:38:10 hostname APP-NAME[PID] message 1
     Jan 21 22:38:10 SAM-PC my-prog[123] message 2
     Jan 21 22:38:10 SAM-PC my-prog message 3
+    ^C (手動中止)
     ```
