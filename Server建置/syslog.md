@@ -79,7 +79,9 @@
     * `VERSION` 目前 syslog 的版本為 1。
 
     * `PRIVAL` 的值是由 `<priority> = <facility>.<level>` 轉換而來:
+
         * `<facility>`
+
             | id | 值 || id | 值 |
             |:---:|:---:|-|:---:|:---:|
             | kern | 0 || ntp | 12 |
@@ -96,6 +98,7 @@
             | ftp | 11 || local7 | 23 |
 
         * `<level>`
+
             | id | 值 || id | 值 |
             |:---:|:---:|-|:---:|:---:|
             | emerg | 0 || warning | 4 |
