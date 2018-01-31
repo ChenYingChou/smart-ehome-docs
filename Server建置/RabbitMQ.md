@@ -42,6 +42,14 @@ apt-get install rabbitmq-server
     #rm -f rabbitmq-server-3.7.2-1.el7.noarch.rpm
     ```
 
+#### 安裝 RabbitMQ 開發函式庫 (librabbitmq-devel 是給 C/C++ 用)：
+```sh
+# 若有安裝 yum remi repository
+yum install -y librabbitmq-last librabbitmq-last-devel
+# 否則用標準的版本
+yum install -y librabbitmq-last librabbitmq-devel
+```
+
 ---
 
 #### 設定系統開機自動啟動 RabbitMQ：

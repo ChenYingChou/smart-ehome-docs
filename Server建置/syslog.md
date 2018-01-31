@@ -16,7 +16,7 @@
 
 1. 防火牆開啟允許誰連入使用 syslog udp port 514:
     ```sh
-    # 在 clearos 的 `Custom Firewall` 中加入 (/etc/clearos/firewall.d/custom):
+    # 在 clearos 的 Custom Firewall 中加入 (/etc/clearos/firewall.d/custom):
     $IPTABLES -t filter -I INPUT -s 允許的ip -p udp --dport 514 -j ACCEPT
     ```
 
