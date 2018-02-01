@@ -42,7 +42,7 @@ apt-get install rabbitmq-server
     #rm -f rabbitmq-server-3.7.2-1.el7.noarch.rpm
     ```
 
-#### 安裝 RabbitMQ 開發函式庫 (librabbitmq-devel 是給 C/C++ 用)：
+#### 安裝 RabbitMQ 開發函式庫 (librabbitmq-devel 供 C/C++ 用)：
 ```sh
 # 若有安裝 yum remi repository
 yum install -y librabbitmq-last librabbitmq-last-devel
@@ -54,6 +54,12 @@ yum install -y librabbitmq-last librabbitmq-devel
 
 #### 設定系統開機自動啟動 RabbitMQ：
 ```sh
+mkdir -p /etc/systemd/system/rabbitmq-server.service.d
+cat > /etc/systemd/system/rabbitmq-server.service.d/open_files.conf << EOF
+[Service]
+LimitNOFILE=16384
+EOF
+systemctl daemon-reload
 systemctl enable rabbitmq-server
 systemctl start rabbitmq-server
 ```
