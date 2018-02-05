@@ -55,10 +55,10 @@ yum install -y librabbitmq-last librabbitmq-devel
 #### 設定系統開機自動啟動 RabbitMQ：
 ```sh
 mkdir -p /etc/systemd/system/rabbitmq-server.service.d
-cat > /etc/systemd/system/rabbitmq-server.service.d/open_files.conf << EOF
+cat > /etc/systemd/system/rabbitmq-server.service.d/open_files.conf << _EOT_
 [Service]
 LimitNOFILE=16384
-EOF
+_EOT_
 systemctl daemon-reload
 systemctl enable rabbitmq-server
 systemctl start rabbitmq-server
@@ -81,7 +81,7 @@ chmod +x rabbitmqadmin
 
 #### 設定管理者帳號：
 ```sh
-rabbitmqctl add_user admin admin8amma
+rabbitmqctl add_user admin **admin-password**
 rabbitmqctl set_user_tags admin administrator
 rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
 ```
