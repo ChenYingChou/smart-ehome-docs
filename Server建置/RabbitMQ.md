@@ -85,3 +85,142 @@ rabbitmqctl add_user admin **admin-password**
 rabbitmqctl set_user_tags admin administrator
 rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
 ```
+
+#### 啟用 Web 認證及授權:
+```sh
+rabbitmq-plutins enable rabbitmq_auth_backend_http
+cat > /etc/rabbitmq/rabbitmq.conf << _EOT_
+# rabbitmq.conf
+
+log.file.level = error
+
+##在鏈中使用兩個後端：首先是內部，然後是HTTP
+auth_backends.1 = internal
+auth_backends.2 = http
+
+##認證
+##內置的機制是“普通”，
+##'AMQPLAIN'和'EXTERNAL'可以通過添加其他機制
+##插件。
+##
+##相關文檔指南：http：//rabbitmq.com/authentication.html。
+##
+auth_mechanisms.1 = AMQPLAIN
+auth_mechanisms.2 = PLAIN
+
+#auth_backends.2 = http
+auth_http.http_method	= post
+auth_http.user_path     = http://localhost:8001/auth/user
+auth_http.vhost_path    = http://localhost:8001/auth/vhost
+auth_http.resource_path = http://localhost:8001/auth/resource
+auth_http.topic_path    = http://localhost:8001/auth/topic
+_EOT_
+```
+
+#### 建立 sqlite3 資料庫:
+資料庫中密碼是採用 CRYPT_BLOWFISH 加密, PHP 函數為 `password_hash('密碼', PASSWORD_BCRYPT)`, 請將下面對應的密碼欄位 ("`$2y$10...`") 換置掉。
+
+```sql
+-- mkdir -p /data/mq-data/db
+-- sqlite3 /data/mq-data/db/oisp.db
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+CREATE TABLE users (
+    id varchar(16) not null primary key,
+    pwd varchar(60) not null,   -- php: password_hash($password,PASSWORD_BCRYPT);
+    token varchar(32),
+    email varchar(200),
+    mobile varchar(20),
+    policy varchar(200),
+    is_active bool not null default false
+);
+INSERT INTO "users" VALUES('admin','$2y$10$W0z1.TCjcROTAjqVp/0GwOfMn6DBKTTJ91p4sUjbq8YvJTTS./xC2','4077d9941ce44ff8a1b6cdb74b40c196','service@example.com',NULL,'management policymaker monitoring administrator','true');
+INSERT INTO "users" VALUES('tony','$2y$10$NrWVLc.Rd791nPfGvZ1d2O23c1KNiXc3p9qTqI0Y3PZ/YCvXJu1PJ','c218eccf0c5349753fb07e5862204086','tonychen@example.com',NULL,'','false');
+COMMIT;
+```
+
+#### PHP Web 認證及授權範例:
+請先依 [nginx-php7](https://github.com/ChenYingChou/smart-ehome-docs/blob/master/Server%E5%BB%BA%E7%BD%AE/nginx-php7.md) 說明建立 Web 及 PHP 執行環境。
+
+```php
+<?php  # /data/mq-data/www/auth/index.php
+
+$dbdns = 'sqlite:/data/mq-data/db/oisp.db';
+$logfile = '/data/mq-data/db/log';
+
+function parse_path_info()
+{
+    $info = [];
+    if (array_key_exists('PATH_INFO', $_SERVER)) $s = $_SERVER['PATH_INFO'];
+    if (empty($s)) $s = $_SERVER['REQUEST_URI'];
+    if (!empty($s)) {
+        $path = explode('/', $s);
+        foreach ($path as $x) {
+            if (!empty($x) && strtolower(substr($x, -4)) !== '.php') {
+                @list($key, $value) = explode('=', $x, 2);
+                $info[$key] = $value;
+            }
+        }
+    }
+    return $info;
+}
+
+function my_log($msg)
+{
+    global $logfile;
+    $dt = new DateTime();
+    error_log($dt->format('m-d H:i:s.v')." $msg\n", 3, $logfile);
+}
+
+$info = parse_path_info();
+$uri = json_encode($info, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+$req = json_encode($_REQUEST, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+my_log("URI=$uri : $req");
+
+$response = 'deny';
+if (array_key_exists('username', $_REQUEST)) {
+    $username = $_REQUEST['username'];
+    try {
+        $opts = [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION];
+        $db = new PDO($dbdns, null, null, $opts);
+
+        $stm = $db->prepare('select * from users where id = ?');
+        $stm->execute([$username]);
+        $user = $stm->fetch(PDO::FETCH_ASSOC);
+        if (!empty($user)) {
+            foreach($info as $key => $value) {
+                if (is_array($value)) $value = implode(',', $value);
+                switch ($key) {
+                    case 'user':	// username, password
+                        // allow management policymaker monitoring administrator
+                        $password = @$_REQUEST['password'];
+                        if (password_verify($password, $user['pwd'])) {
+                            $response = trim("allow {$user['policy']}");
+                        } else {
+                            $response = 'deny';
+                        }
+                        my_log("Response=$response");
+                        $stm = null;
+                        break;
+                    case 'vhost':	// username, vhost, ip(client)
+                    case 'resource':// username, vhost, resource(exchange, queue, topic),
+                        // name(resource), permission(configure, write, read)
+                    case 'topic':	// username, vhost, resource(topic), name(exchange),
+                        // permission(write, read), routing_key
+                        $response = 'allow';
+                        break;
+                    case '_': // jQuery adding to prevent server cached page
+                        break;
+                }
+            }
+        }
+    } catch(Exception $e) {
+        my_log('Exception: '.$e->getMessage());
+    } finally {
+        $db = null;
+    }
+}
+
+header('Cache-Control: max-age=3600');
+echo $response;
+```
