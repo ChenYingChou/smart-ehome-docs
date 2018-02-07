@@ -81,7 +81,7 @@ chmod +x rabbitmqadmin
 
 #### 設定管理者帳號：
 ```sh
-rabbitmqctl add_user admin **admin-password**
+rabbitmqctl add_user admin **請換置成你的密碼**
 rabbitmqctl set_user_tags admin administrator
 rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
 ```
@@ -117,26 +117,38 @@ auth_http.topic_path    = http://localhost:8001/auth/topic
 _EOT_
 ```
 
+#### 建立相關目錄及權限設定:
+```sh
+mkdir -p /data/mq-data/db
+mkdir -p /data/mq-data/www/auth
+# ... 建立 sqlite3 資料庫: /data/mq-data/db/oisp.db (如後所述)
+# ... 建立 PHP Web 認證及授權程式: /data/www/auth/index.php (如後所述)
+chown -R root:nginx /data/mq-data
+chown -R apache:nginx /data/mq-data/db      # 允許執行期 php-fpm 讀寫 sqlite 資料庫
+chown -R nginx:nginx /data/mq-data/www      # 允許執行期 php-fpm 讀取(執行) php 程式
+chmod 750 /data/mq-data /data/mq-data/db /data/mq-data/www
+```
+
 #### 建立 sqlite3 資料庫:
-資料庫中密碼是採用 CRYPT_BLOWFISH 加密, PHP 函數為 `password_hash('密碼', PASSWORD_BCRYPT)`, 請將下面對應的密碼欄位 ("`$2y$10...`") 換置掉。
+資料庫中密碼是採用 CRYPT_BLOWFISH 加密, PHP 函數為 `password_hash('密碼', PASSWORD_BCRYPT)`, 請將下面對應的密碼欄位 ('`$2y$10...`') 換置掉。
 
 ```sql
--- mkdir -p /data/mq-data/db
--- sqlite3 /data/mq-data/db/oisp.db
+-- sqlite3 /data/mq-data/db/oisp.db << _EOT_
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
 CREATE TABLE users (
     id varchar(16) not null primary key,
     pwd varchar(60) not null,   -- php: password_hash($password,PASSWORD_BCRYPT);
-    token varchar(32),
-    email varchar(200),
-    mobile varchar(20),
-    policy varchar(200),
+    token varchar(32) not null default '',
+    email varchar(200) not null default '',
+    mobile varchar(20) not null default '',
+    policy varchar(200) not null default '',
     is_active bool not null default false
 );
 INSERT INTO "users" VALUES('admin','$2y$10$W0z1.TCjcROTAjqVp/0GwOfMn6DBKTTJ91p4sUjbq8YvJTTS./xC2','4077d9941ce44ff8a1b6cdb74b40c196','service@example.com',NULL,'management policymaker monitoring administrator','true');
 INSERT INTO "users" VALUES('tony','$2y$10$NrWVLc.Rd791nPfGvZ1d2O23c1KNiXc3p9qTqI0Y3PZ/YCvXJu1PJ','c218eccf0c5349753fb07e5862204086','tonychen@example.com',NULL,'','false');
 COMMIT;
+-- _EOT_
 ```
 
 #### PHP Web 認證及授權範例:
