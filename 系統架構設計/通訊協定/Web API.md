@@ -3,39 +3,109 @@
 1. Apps 可連雲端伺服器或本地伺服器:
     * 若為私有 IP，則先以 UDP Port 9999 廣播尋找本地伺服器，若有回應則連接到指定伺服器，否則連到預設雲端伺服器。
     * 尋找本地伺服器 UDP 資料: `REQ SmartEHome [TAB] <port> [TAB] <x>`
-        1. `<port>` 為程式接收回應的 udp 埠
+        1. `<port>` 為程式接收回應的 udp 埠, 零表示使用發送封包時的 port。
         2. `<x>` 為至少 16 字元隨機值 (本次臨時 key)，以 base64 編碼。
 
-            ```php
-            $port = 12345;
-            $keystr = "01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16";
-            $key = hex2bin(preg_replace('/\s+/', '', $keystr));
-            $keym64 = base64_encode($key);
-            echo "REQ SmartEHome\t{$port}\t{$keym64}";
-            # output: "REQ SmartEHome[↹]12345[↹]AQIDBAUGBwgJEBESExQVFg=="
-            # 以 [↹] 表示 Tab 字元
-            ```
-    * 本地伺服器回應 UDP `<port>`: `SmartEHome [TAB] <y> [TAB] <z>`
-        1. `<server key>` 由條碼掃描本地伺服器網頁而來。
-        2. `<y>` 和 `<z>` 皆為 base64 編碼。
-        3. 驗證 `<z>` 是否和 `HMAC-SHA1(<server key> + <x:本次臨時 key>, <y>)` 相等，若不等則表示本訊息不正確，捨棄不理會。
-        4. 若驗證正確則執行解密: `<msg> =  AES-CTR 解碼(<server key>, <y> base64 解碼)`
+        ```php
+        $port = 12345;
+        $client_keystr = "01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16";
+        $client_key = hex2bin(str_replace(' ', '', $client_keystr));
+        $client_key_b64 = base64_encode($client_key);
+        echo "REQ SmartEHome\t0\t{$client_key_b64}";
+        # output: "REQ SmartEHome[↹]0[↹]AQIDBAUGBwgJEBESExQVFg=="
+        # 以 [↹] 表示 Tab 字元
+        ```
 
-            ```js
-            <msg> = {
-                "s_id": "<本地伺服器ID>",
-                "ip": "<本地伺服器IP>",
-                "web_port": <WebPort>,
-                "mqtt_port": <MqttPort>
-            }
-            ```
+    * 本地伺服器回應 UDP `<port>`: `SmartEHome [TAB] <y> [TAB] <z>`
+        1. `<server key>` 由條碼掃描本地伺服器網頁而來。本例假設為 Hex(`FF 88 10 CA 5E 2F 86 00 7F 66 67 46 C3 4B 0F DA`)。
+        2. `<y>`: iv[16]+加密後的資料，轉為 base64 編碼。
+        3. `<z>`: `<y>` 的 `HMAC-SHA1` 驗證值，轉為 base64 編碼。 HMAC-SHA1 使用的鍵值為 `<server key> + <client key>`。
+        4. 若驗證正確則執行解密: `<text> =  AES-CTR 解碼(<server key>, <y.data>, <y.iv>)`
+
+        ```php
+        // <server key> = Hex(FF 88 10 CA 5E 2F 86 00 7F 66 67 46 C3 4B 0F DA)
+        // <client key> = Hex(01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16)
+        $server_key = hex2bin(str_replace(' ', '', "FF 88 10 CA 5E 2F 86 00 7F 66 67 46 C3 4B 0F DA"));
+        $client_key = hex2bin(str_replace(' ', '', "01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16"));
+
+        // 收到: "SmartEHome [↹] Qw0/HcSzMVxKcqPjkKBbcHK/M1b0eVa3sA6JH4NVaHRSynHR6WHFqyPwcI1af62AHe00vSFRpwPvM2hVBfHHcpVxY14W1f5whIhHlRehGvZkRZPR+7Fr [↹] /k1rBNeTHHuMb6x5s4bZDShdfPU="
+        $y = "Qw0/HcSzMVxKcqPjkKBbcHK/M1b0eVa3sA6JH4NVaHRSynHR6WHFqyPwcI1af62AHe00vSFRpwPvM2hVBfHHcpVxY14W1f5whIhHlRehGvZkRZPR+7Fr";
+        $z = "/k1rBNeTHHuMb6x5s4bZDShdfPU=";
+
+        // 檢驗 HMAC-SHA1 是否相符
+        $hmac_key = $server_key . $client_key;
+        if (base64_encode(hash_hmac("sha1", $y, $hmac_key, true)) !== $z) {
+            echo "*** Unmatch HMAC-SHA1";
+            return false;
+        }
+
+        // 解密
+        $encrypted = base64_decode($y);
+        $iv = substr($encrypted, 0, 16);
+        $encryptedText = substr($encrypted, 16);
+        $text = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $server_key, $encryptedText, 'ctr', $iv);
+        echo "$text\n";
+        // 輸出: {"s_id":"AMMA-2F","ip":"192.168.1.11","web_port":8000,"mqtt_port":1883}
+        ```
 
         * AES CTR 演算法參考 [AES-JS](https://github.com/ricmoo/aes-js)。
-        <br>
+        * 完整 php 客端範例:
+            ```php
+            function nosp($s) {
+                return str_replace(' ', '', $s);
+            }
+
+            $port = 9999;
+            $server_key = hex2bin(nosp("FF 88 10 CA 5E 2F 86 00 7F 66 67 46 C3 4B 0F DA"));
+
+            // $client_keystr = "01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16";
+            // $client_key = hex2bin(nosp($client_keystr));
+            $client_key = openssl_random_pseudo_bytes(16);
+
+            $client_key_b64 = base64_encode($client_key);
+            $msg = "REQ SmartEHome\t0\t{$client_key_b64}";
+            echo ">>> send: $msg\n";
+
+            $sock = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
+            socket_set_option($sock, SOL_SOCKET, SO_BROADCAST, 1);
+            socket_sendto($sock, $msg, strlen($msg), 0, '255.255.255.255', $port);
+
+            $hmac_key = $server_key . $client_key;  // key for HMAC-SHA1
+            while (true) {
+                if (socket_recv($sock, $reply, 8192, MSG_WAITALL) === FALSE) {
+                    $errorcode = socket_last_error();
+                    $errormsg = socket_strerror($errorcode);
+                    die("Could not receive data: [$errorcode] $errormsg \n");
+                }
+
+                echo ">>> recv: $reply\n";
+                $fields = explode("\t", $reply);
+                if ($fields[0] !== "SmartEHome" || count($fields) != 3) continue;
+
+                // SmartEHome [TAB] <encrypted> [TAB] <hmac>
+                if (base64_encode(hash_hmac("sha1", $fields[1], $hmac_key, true)) !== $fields[2]) {
+                    echo "*** Unmatch HMAC-SHA1:\n";
+                    echo "\$hmac_key  = hex2bin(\"".bin2hex($hmac_key)."\");\n";
+                    echo "    \$etext = \"{$fields[1]}\";\n";
+                    echo "    \$hmac  = \"{$fields[2]}\";\n";
+                    continue;
+                }
+
+                $encrypted = base64_decode($fields[1]);
+                $iv = substr($encrypted, 0, 16);
+                $encryptedText = substr($encrypted, 16);
+                $text = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $server_key, $encryptedText, 'ctr', $iv);
+                echo ">>> text: $text\n";
+                break;
+            }
+
+            //socket_close($sock);
+            ```
 
 1. 網站連線主機:
     * 雲端伺服器一定 SSL 連線: `<WebHost> = "https://server:port"`。
     * 本地伺服器無加密連線: `<WebHost> = "http://<本地伺服器IP>:<WebPort>"`。
+    <br>
 
 1. Apps 登錄取得身份驗證令牌: url = `<WebHost>/api/login`
     * Apps 送出 `POST` 資料如下:
