@@ -2,13 +2,24 @@
 
 1. Apps 可連雲端伺服器或本地伺服器:
     * 若為私有 IP，則先以 UDP Port 9999 廣播尋找本地伺服器，若有回應則連接到指定伺服器，否則連到預設雲端伺服器。
-    * 尋找本地伺服器 UDP 資料: `REQ SmartEHome: <x>`， `<x>` 為至少16字元隨機字串，以 base64 編碼。
-    * 本地伺服器回應 UDP Port 9999: `SmartEHome [TAB] <y> [TAB] <z>`
+    * 尋找本地伺服器 UDP 資料: `REQ SmartEHome [TAB] <port> [TAB] <x>`
+        1. `<port>` 為程式接收回應的 udp 埠
+        2. `<x>` 為至少 16 字元隨機值 (本次臨時 key)，以 base64 編碼。
 
+            ```php
+            $port = 12345;
+            $keystr = "01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16";
+            $key = hex2bin(preg_replace('/\s+/', '', $keystr));
+            $keym64 = base64_encode($key);
+            echo "REQ SmartEHome\t{$port}\t{$keym64}";
+            # output: "REQ SmartEHome[↹]12345[↹]AQIDBAUGBwgJEBESExQVFg=="
+            # 以 [↹] 表示 Tab 字元
+            ```
+    * 本地伺服器回應 UDP `<port>`: `SmartEHome [TAB] <y> [TAB] <z>`
         1. `<server key>` 由條碼掃描本地伺服器網頁而來。
         2. `<y>` 和 `<z>` 皆為 base64 編碼。
-        3. 驗證 `<y>` 是否和 `HMAC-SHA1(<server key>, <x> base64 解碼) 再 base64 編碼` 相等，若不等則表示本訊息不正確，捨棄不理會。
-        4. 若驗證正確則執行解密: `<msg> =  AES-CTR 解碼(<server key>, <z> base64 解碼)`
+        3. 驗證 `<z>` 是否和 `HMAC-SHA1(<server key> + <x:本次臨時 key>, <y>)` 相等，若不等則表示本訊息不正確，捨棄不理會。
+        4. 若驗證正確則執行解密: `<msg> =  AES-CTR 解碼(<server key>, <y> base64 解碼)`
 
             ```js
             <msg> = {
