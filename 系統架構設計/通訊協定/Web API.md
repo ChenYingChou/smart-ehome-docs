@@ -7,7 +7,6 @@
         2. `<x>` 為至少 16 字元隨機值 (本次臨時 key)，以 base64 編碼。
 
         ```php
-        $port = 12345;
         $client_keystr = "01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16";
         $client_key = hex2bin(str_replace(' ', '', $client_keystr));
         $client_key_b64 = base64_encode($client_key);
@@ -49,8 +48,66 @@
         ```
 
         * AES CTR 演算法參考 [AES-JS](https://github.com/ricmoo/aes-js)。
+
+        * 完整 node js 客端範例:
+
+            ```js
+            const aesjs = require('aes-js');
+            const crypto = require('crypto');
+
+            var port = 9999;
+            var server_keystr = 'FF 88 10 CA 5E 2F 86 00 7F 66 67 46 C3 4B 0F DA';
+            var server_key = aesjs.utils.hex.toBytes(server_keystr.replace(/ /g, ''));
+
+            // var client_keystr = '01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16';
+            // var client_key = aesjs.utils.hex.toBytes(client_keystr.replace(/ /g, ''));
+            var client_key = crypto.randomBytes(16);
+
+            var msg = "REQ SmartEHome\t0\t" + client_key.toString('base64');
+            console.log(`>>> send: ${msg}`);
+
+            var dgram = require('dgram');
+            var sock = dgram.createSocket('udp4');
+            sock.bind(() => {
+                sock.setBroadcast(true);
+            });
+            sock.send(msg, 0, msg.length, port, "255.255.255.255");
+
+            var hmac_key = Buffer.concat([Buffer.from(server_key), Buffer.from(client_key)]);
+            sock.on('message', (message, rinfo) => {
+                var reply = message.toString();
+                console.log(`>>> recv: ${reply}`);
+                var fields = reply.split('\t');
+                if (fields[0] !== "SmartEHome" || fields.length != 3) return;
+
+                // SmartEHome [TAB] <encrypted> [TAB] <hmac>
+                var tag = crypto.createHmac('sha1', hmac_key).update(fields[1]).digest();
+                if (tag.toString('base64') !== fields[2]) {
+                    console.log('*** Unmatch HMAC-SHA1:');
+                    console.log('hmac_key = Buffer.from(\''+hmac_key.toString('hex')+'\', \'hex\');');
+                    console.log(`   etext = \'${fields[1]}\'`);
+                    console.log(`    hmac = \'${fields[2]}\'`);
+                    return;
+                }
+
+                var encrypted = Buffer.from(fields[1], 'base64');
+                var iv = encrypted.slice(0, 16);;
+                var encryptedText = encrypted.slice(16);
+
+                var aesCtr = new aesjs.ModeOfOperation.ctr(server_key, iv);
+                var decryptedBytes = aesCtr.decrypt(encryptedText);
+                // var text = aesjs.utils.utf8.fromBytes(decryptedBytes);
+                var text = Buffer.from(decryptedBytes).toString();
+                console.log(`>>> text: ${text}`);
+                sock.close();
+            });
+            ```
+
         * 完整 php 客端範例:
+
             ```php
+            <?php
+
             function nosp($s) {
                 return str_replace(' ', '', $s);
             }
@@ -99,7 +156,7 @@
                 break;
             }
 
-            //socket_close($sock);
+            socket_close($sock);
             ```
 
 1. 網站連線主機:
