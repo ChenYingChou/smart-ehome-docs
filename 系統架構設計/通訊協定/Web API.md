@@ -159,6 +159,34 @@
             socket_close($sock);
             ```
 
+1. App 第一次要先取得本地伺服器的授權帳號: url = `http://<本地伺服器IP>:<WebPort>/admin/newuser`。
+    * Apps 送出 `POST` 資料如下:
+
+        ```
+        s_id=<本地伺服器ID>
+        ```
+
+    * Web 回覆:
+
+        ```js
+        // 錯誤
+        {
+            "s_id": "<伺服器ID>",
+            "status": 1,                        // 0:成功, 1:需admin授權碼, 2:其他錯誤
+            "payload": "錯誤訊息"
+        }
+
+        // 正確
+        {
+            "s_id": "<伺服器ID>",
+            "status": 0,                     	// 0:成功, 非零:錯誤
+            "payload": {
+                "user": "<用戶ID>",
+                "password": "<用戶密碼>"       	// 0:成功, 非零:錯誤
+            }
+        }
+        ```
+
 1. 網站連線主機:
     * 雲端伺服器一定 SSL 連線: `<WebHost> = "https://server:port"`。
     * 本地伺服器無加密連線: `<WebHost> = "http://<本地伺服器IP>:<WebPort>"`。
