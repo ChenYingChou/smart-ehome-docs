@@ -159,11 +159,11 @@
             socket_close($sock);
             ```
 
-1. App 第一次要先取得本地伺服器的授權帳號: url = `http://<本地伺服器IP>:<WebPort>/admin/newuser`。
-    * Apps 送出 `POST` 資料如下:
-
+1. App 第一次要先取得本地伺服器的授權帳號: url = `http://<本地伺服器IP>:<WebPort>/admin/newuser`
+    * Apps 送出 `POST` 資料如下:<br>第2個起用戶必須向 admin 取得授權碼
         ```
         s_id=<本地伺服器ID>
+        authorized_code=<從 admin 取得授權碼>
         ```
 
     * Web 回覆:
