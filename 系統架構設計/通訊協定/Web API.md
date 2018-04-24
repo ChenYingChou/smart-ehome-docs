@@ -127,7 +127,7 @@ url = `http://<本地伺服器IP>:<WebPort>/admin/getcode`
     ```
 
 
-## 網站連線主機名稱:
+## 網站連線主機名稱
 
 1. 雲端伺服器一定 SSL 連線: `<WebHost> = "https://oisp.smart-ehome.com"`。
 1. 本地伺服器無加密連線: `<WebHost> = "http://<本地伺服器IP>:<WebPort>"`。
@@ -135,7 +135,7 @@ url = `http://<本地伺服器IP>:<WebPort>/admin/getcode`
 
 ## App 登錄取得身份驗證令牌
 
-url = `<WebHost>/api/login`
+url = [`<WebHost>`](#網站連線主機名稱)`/api/login`
 
 `<身份驗證令牌>` 用於 MQTT 通訊協定。
 
