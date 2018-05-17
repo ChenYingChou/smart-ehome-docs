@@ -42,7 +42,7 @@ apt-get install rabbitmq-server
     #rm -f rabbitmq-server-3.7.2-1.el7.noarch.rpm
     ```
 
-#### 安裝 RabbitMQ 開發函式庫 (librabbitmq-devel 供 C/C++ 用)：
+#### 安裝 RabbitMQ 開發函式庫 (librabbitmq-devel 供 C/C++ 用)
 ```sh
 # 若有安裝 yum remi repository
 yum install -y librabbitmq-last librabbitmq-last-devel
@@ -52,7 +52,7 @@ yum install -y librabbitmq-last librabbitmq-devel
 
 ---
 
-#### 設定系統開機自動啟動 RabbitMQ：
+#### 設定系統開機自動啟動 RabbitMQ
 ```sh
 mkdir -p /etc/systemd/system/rabbitmq-server.service.d
 cat > /etc/systemd/system/rabbitmq-server.service.d/open_files.conf << _EOT_
@@ -64,7 +64,7 @@ systemctl enable rabbitmq-server
 systemctl start rabbitmq-server
 ```
 
-#### 啟用 Web 管理及 MQTT/webMQTT 協定：
+#### 啟用 Web 管理及 MQTT/webMQTT 協定
 ```sh
 # RabbitMQ: tcp:5672, SSL:5671
 rabbitmq-plugins enable rabbitmq_management       # tcp:15672, SSL:15671
@@ -72,21 +72,21 @@ rabbitmq-plugins enable rabbitmq_mqtt             # tcp:1883 , SSL:8883
 rabbitmq-plugins enable rabbitmq_web_mqtt         # tcp:15675, SSL:15674
 ```
 
-#### 下載 rabbitmqadmin：
+#### 下載 rabbitmqadmin
 ```sh
 cd /usr/local/bin
 wget http://localhost:15672/cli/rabbitmqadmin
 chmod +x rabbitmqadmin
 ```
 
-#### 設定管理者帳號：
+#### 設定管理者帳號
 ```sh
 rabbitmqctl add_user admin **請換置成你的密碼**
 rabbitmqctl set_user_tags admin administrator
 rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
 ```
 
-#### 啟用 Web 認證及授權:
+#### 啟用 Web 認證及授權
 ```sh
 rabbitmq-plutins enable rabbitmq_auth_backend_http
 cat > /etc/rabbitmq/rabbitmq.conf << _EOT_
@@ -117,7 +117,31 @@ auth_http.topic_path    = http://localhost:8001/auth/topic
 _EOT_
 ```
 
-#### 建立相關目錄及權限設定:
+#### 每次更新版本
+* 基本 schema 可能有異動需手動更新:
+    ```sh
+    cd /var/lib/rabbitmq/schema
+    cp -af rabbit.schema /tmp/
+    cp -af /usr/lib/rabbitmq/lib/rabbitmq_server-<新版號>/priv/schema/rabbit.schema .
+    chown rabbitmq:rabbitmq rabbit.schema
+    chmod o-rwx rabbit.schema
+    ```
+
+* 編輯 /etc/rabbitmq/rabbitmq.conf，增加新的設定:
+    ```conf
+    ## Logging to rabbit amq.rabbitmq.log exchange (can be true or false)
+    ##
+    log.exchange = true
+
+    ## Loglevel to log to amq.rabbitmq.log exchange
+    ##
+    log.exchange.level = info
+    ```
+
+* 再重啟服務: `service rabbitmq-server restart`
+
+
+#### 建立相關目錄及權限設定
 ```sh
 mkdir -p /data/mq-data/db
 mkdir -p /data/mq-data/www/auth
@@ -129,7 +153,7 @@ chown -R nginx:nginx /data/mq-data/www      # 允許執行期 php-fpm 讀取(執
 chmod 750 /data/mq-data /data/mq-data/db /data/mq-data/www
 ```
 
-#### 建立 sqlite3 資料庫:
+#### 建立 sqlite3 資料庫
 資料庫中密碼是採用 CRYPT_BLOWFISH 加密, PHP 函數為 `password_hash('密碼', PASSWORD_BCRYPT)`, 請將下面對應的密碼欄位 ('`$2y$10...`') 換置掉。
 
 ```sql
@@ -151,7 +175,7 @@ COMMIT;
 -- _EOT_
 ```
 
-#### PHP Web 認證及授權範例:
+#### PHP Web 認證及授權範例
 請先依 [nginx-php7](https://github.com/ChenYingChou/smart-ehome-docs/blob/master/Server%E5%BB%BA%E7%BD%AE/nginx-php7.md) 說明建立 Web 及 PHP 執行環境。
 
 ```php
