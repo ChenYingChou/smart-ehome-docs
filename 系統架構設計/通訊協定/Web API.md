@@ -24,7 +24,8 @@
     * 解密出的 `<text>` 為 JSON 字串，例如:
         ```json
         {
-            "server": "AMMA-2F",
+            "server": "d2045940-5e38-11e8-bea1-77a4b0d356bf",
+            "name": "AMMA-2F",
             "local": {
                 "web_api": "https://dev.smart-ehome.com/api",
                 "mqtt_host": "dev.smart-ehome.com",
@@ -40,17 +41,17 @@
         }
         ```
     * 以下所提到 `<本地伺服器ID>` 、 `<local.web_api>` 、 `<inet.web_api>` 是指此處 JSON 物件中 `server` 、 `local.web_api` 、 `inet.web_api` 的值，以本範例而言其值如下:
-        * `<本地伺服器ID>`: `"AMMA-2F"`
-        * `<local.web_api>`: `"https://dev.smart-ehome.com/api"`
-        * `<inet.web_api>`: `"https://oisp.smart-ehome.com/api"`
+        * `<本地伺服器ID>`: `d2045940-5e38-11e8-bea1-77a4b0d356bf`
+        * `<local.web_api>`: `https://dev.smart-ehome.com/api`
+        * `<inet.web_api>`: `https://oisp.smart-ehome.com/api`
     * php 逐步示範：
         ```php
         // <client key> = Hex(01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16)
         $client_key = hex2bin(str_replace(' ', '', '01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16'));
 
         // 收到: "SmartEHome [↹] $y [↹] $z"
-        $y = "1ZW3kd3Ih4jXUKl+sMo4xRp0NP6hHPM5Fgrz3R98x/5o3l+wKyaVNWrJ7fx82/0Vy0QFM3GVnRwIxdsXF/KK0SZmd/e/gSNzH53cz/CLPlB8bqNa3nwfAy2wPoYZz8hcpfsGCCGUzvXu7ah+RObJ8mWxIbMaWfpFpl+fDEn0RptJy66VjZuTijfVRWF0rYZm11XtKfMdfnO2yIj+fFSkAalEQqKRKsraIK39tK1/DHVmHduKqRhdmPu9Y8T7YgHk5ACEZcFvpn+u4GLmk1jeh8gNPsAJuCyy6oeujvk7d1OVL/9xW1DNMSFi6XJiYhAgGs9CCJScuP0bH/AG+qPMpA1kjN2wjY4z04Ns51kf9hhi97BmODEGtPtvm+FyP579f30KNL6Zv0obf/34vhmPPWsne8MTxCTRcG3lzU+gipL3/TogDWn6j7JhmjeDoI7YTGU2xp1QTJr5sgILJmUfrupf/oPpbyclz7252ToFaH2fl3rVDap2dx5rtZBhANJDJiJj6nG+5+cIpw3sJHOa";
-        $z = "PCX8xaGWcYtBCbqswye7eUiXpgk=";
+        $y = "UBFUJLCEK8ctgIKO0OtuwAp9hkdAvbJqK20aVEWgYXkNtSQ+WCoH2r4nNOsct+P4PPBYUKW7TRfapuHrlc19a4bAKQdj8Cx7HfoNOTlNV58uTiXfs8vAS3RnHZ12jaROAxTU1w+X+lvIwO9LfwPB2IJiKCW6SwHIvIQBZRkBmq+aonnCWJ+VfBHNvr11aKqDKM1yP1pAw7JAAK/ZQaxZtsE4Lmzy2QSflCTZUSwfUZOQG8Tp8miYXqDSSwixL0xTs7FyTU0UBynUy5Azv1Db9rmXvD+T+sL0XcOV6UMDnfI62j8A8aS+XfL67oeBWcujb+xByyNdTEP5CQzXtvEsTeZH9AIPjAnZmsPFDsVwIaVOojSyTqYdwYrcRn1wmNPu+Xw17r+6sO9bRHt7CxJG2HGpyqE9yEaaohjheF5gXPjGcfPyNgAGa64YBIWKs3n3mk1l93jbLERwxcV3/YtRw/sWUT0dTEdeMCuHwysNc1ZpX8neSQIZPLmEKL9REQw1pMcKUKchGMZhBKSFFZCrO90dHjgbIKMdlVoXuRhG8UWMeeqseBlDEWpurRqDqPoOUgsig7QuGmDVfc5ihrLPHSRtkg==";
+        $z = "+OWyzsAo1h6v7HUmx3h8wMtnI6Y=";
 
         // 檢驗 HMAC-SHA1 是否相符
         $hmac_key = $client_key;
@@ -80,6 +81,7 @@ url = `<local.web_api>/newuser`
 
     ```
     server=<本地伺服器ID>
+    username=<用戶自定名稱>
     authcode=<向系統管理者取得授權碼>
     ```
 
@@ -91,7 +93,7 @@ url = `<local.web_api>/newuser`
         "server": "<伺服器ID>",
         "status": 0,                     	// 0:成功
         "payload": {
-            "username": "<用戶ID>",
+            "user": "<用戶ID>",
             "password": "<用戶密碼>"
         }
     }
@@ -116,7 +118,7 @@ url = `<local.web_api>/getauthcode`
 
     ```
     server=<本地伺服器ID>
-    username=<系統管理者帳號>
+    user=<系統管理者帳號>
     password=<系統管理者密碼>
     ```
 
@@ -155,7 +157,7 @@ url = [`<WebHost>`](#網站連線主機名稱)`/login`
 
     ```
     server=<本地伺服器ID>
-    username=<用戶ID>
+    user=<用戶ID>
     password=<用戶密碼>
     ```
 
@@ -167,7 +169,7 @@ url = [`<WebHost>`](#網站連線主機名稱)`/login`
         "status": 0,                        // 0:成功, 非零:錯誤
         "payload": {                        // MQTT 用物件 或 錯誤訊息
             "router": "<routing key>",
-            "queue": "<Queue Name>",
+            "clientid": "<cliet id>",
             "token": "<身份驗證令牌>"
         }
     }
