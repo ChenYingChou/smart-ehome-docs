@@ -4,20 +4,20 @@
 
 若為私有 IP，則先以 UDP Port 9998 廣播尋找本地伺服器，若有回應則連接到指定伺服器，否則連到預設雲端伺服器 (`<inet.web_api>`: https://oisp.smart-ehome.com/api)。
 
-1. 尋找本地伺服器 UDP 資料: `REQ SmartEHome [TAB] <port> [TAB] <client_key>`
+1. 尋找本地伺服器 UDP 資料: `REQ SmartHOME [TAB] <port> [TAB] <client_key>`
     * `<port>` 為程式接收回應的 udp 埠, 零表示使用發送封包時的 port。
-    * `<client_key>` 為至少 16 字元隨機值 (本次臨時 key)，以 base64 編碼。
+    * `<client_key>` 為 16 字元隨機值 (本次臨時 key)，以 base64 編碼。
 
     ```php
     $client_keystr = "01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16";
     $client_key = hex2bin(str_replace(' ', '', $client_keystr));
     $client_key_b64 = base64_encode($client_key);
-    echo "REQ SmartEHome\t0\t{$client_key_b64}";
-    # output: "REQ SmartEHome[↹]0[↹]AQIDBAUGBwgJEBESExQVFg=="
+    echo "REQ SmartHOME\t0\t{$client_key_b64}";
+    # output: "REQ SmartHOME[↹]0[↹]AQIDBAUGBwgJEBESExQVFg=="
     # 上行輸出以 [↹] 表示 Tab 字元
     ```
 
-1. 本地伺服器回應 UDP `<port>`: `SmartEHome [TAB] <y> [TAB] <z>`
+1. 本地伺服器回應 UDP `<port>`: `SmartHOME [TAB] <y> [TAB] <z>`
     * `<y>`: iv[16]+加密後的資料，轉為 base64 編碼。
     * `<z>`: `<y>` 的 `HMAC-SHA1` 驗證值，轉為 base64 編碼。 HMAC-SHA1 使用的鍵值為 `<client_key>`。
     * 若驗證正確則執行解密: `<text> =  AES-CTR 解碼(<client_key>, <y.data>, <y.iv>)`。
@@ -49,9 +49,9 @@
         // <client key> = Hex(01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16)
         $client_key = hex2bin(str_replace(' ', '', '01 02 03 04 05 06 07 08 09 10 11 12 13 14 15 16'));
 
-        // 收到: "SmartEHome [↹] $y [↹] $z"
-        $y = "UBFUJLCEK8ctgIKO0OtuwAp9hkdAvbJqK20aVEWgYXkNtSQ+WCoH2r4nNOsct+P4PPBYUKW7TRfapuHrlc19a4bAKQdj8Cx7HfoNOTlNV58uTiXfs8vAS3RnHZ12jaROAxTU1w+X+lvIwO9LfwPB2IJiKCW6SwHIvIQBZRkBmq+aonnCWJ+VfBHNvr11aKqDKM1yP1pAw7JAAK/ZQaxZtsE4Lmzy2QSflCTZUSwfUZOQG8Tp8miYXqDSSwixL0xTs7FyTU0UBynUy5Azv1Db9rmXvD+T+sL0XcOV6UMDnfI62j8A8aS+XfL67oeBWcujb+xByyNdTEP5CQzXtvEsTeZH9AIPjAnZmsPFDsVwIaVOojSyTqYdwYrcRn1wmNPu+Xw17r+6sO9bRHt7CxJG2HGpyqE9yEaaohjheF5gXPjGcfPyNgAGa64YBIWKs3n3mk1l93jbLERwxcV3/YtRw/sWUT0dTEdeMCuHwysNc1ZpX8neSQIZPLmEKL9REQw1pMcKUKchGMZhBKSFFZCrO90dHjgbIKMdlVoXuRhG8UWMeeqseBlDEWpurRqDqPoOUgsig7QuGmDVfc5ihrLPHSRtkg==";
-        $z = "+OWyzsAo1h6v7HUmx3h8wMtnI6Y=";
+        // 收到: "SmartHOME [↹] $y [↹] $z"
+        $y = "E7zQdgsvbcqSEkoHtxqiIQTQXN8S32fvXn6LLUj4zRBF92cnT1v4Fe5lKOGrjXgBi6BSoG+izgHVLJXJBFBbujXvrK6n3OfHIFQ9cDVvW+QmkFRrvxWeg7VyoFWTyVE2tO8AeO5ON08bfD9VypdGdRatQgCrXfHj3Ny8ajiYQXQ5SQvSfhDRxHrLUtr65dmX4CHgsuvqTnjmfO5K78DJbcPe+bPaBFNi3o0BZTbwbigU5APDOT9FQrYw8HrwY3313gaY1S//S/cGzZLwHWSyA/v7JIohnercDrbolBjOe17/g4h99SiTYcXtbs84fc9c2TZQ5jvxp8XL2ya4PW+D0jKjXEwWV84+WNc9JJDmXdr4Ab9QDtVWtcO9NJQ53Ej5Aov9LBV3JXlhPrTIrQ3YhOCfJXNxfkGaJiSatX4AkLum9QPtLR+ySx9F70zlO9WV5xeOTX1ZDcLq+M1d0AqRbNUpx1CUkjrmwQGtpxJFlLNepfZTSg0r/4C+7D90OcB8kgdVwiTdAuzus9VotHJTexXVYGeTD+1ItAbM7PxBK41tfFVZmK2yaAMc6mcNh8/A8jAEzVpjOzH9LyGIbI5arnHAfQ==";
+        $z = "LrppVYNbY7agCf7K5ll1YgWtzgc=";
 
         // 檢驗 HMAC-SHA1 是否相符
         $hmac_key = $client_key;
@@ -73,7 +73,7 @@
 
 ## App 第一次要先取得本地伺服器的授權帳號及密碼
 
-url = `<local.web_api>/newuser`
+url = `<local.web_api>/createuser`
 
 1. App 送出 `POST` 資料如下:
 
@@ -189,7 +189,7 @@ url = [`<WebHost>`](#網站連線主機名稱)`/login`
     // var client_key = Buffer.from(client_keystr.replace(/ /g, ''), 'hex');
     var client_key = crypto.randomBytes(16);
 
-    var msg = 'REQ SmartEHome\t0\t' + client_key.toString('base64');
+    var msg = 'REQ SmartHOME\t0\t' + client_key.toString('base64');
     console.log(`>>> send: ${msg}`);
 
     var dgram = require('dgram');
@@ -204,9 +204,9 @@ url = [`<WebHost>`](#網站連線主機名稱)`/login`
         var reply = message.toString();
         console.log(`>>> recv: ${reply}`);
         var fields = reply.split('\t');
-        if (fields[0] !== 'SmartEHome' || fields.length != 3) return;
+        if (fields[0] !== 'SmartHOME' || fields.length != 3) return;
 
-        // SmartEHome [TAB] <encrypted> [TAB] <hmac>
+        // SmartHOME [TAB] <encrypted> [TAB] <hmac>
         var tag = crypto.createHmac('sha1', hmac_key).update(fields[1]).digest();
         if (tag.toString('base64') !== fields[2]) {
             console.log('*** Unmatch HMAC-SHA1:');
@@ -245,7 +245,7 @@ url = [`<WebHost>`](#網站連線主機名稱)`/login`
     $client_key = openssl_random_pseudo_bytes(16);
 
     $client_key_b64 = base64_encode($client_key);
-    $msg = "REQ SmartEHome\t0\t{$client_key_b64}";
+    $msg = "REQ SmartHOME\t0\t{$client_key_b64}";
     echo ">>> send: $msg\n";
 
     $sock = socket_create(AF_INET, SOCK_DGRAM, SOL_UDP);
@@ -262,9 +262,9 @@ url = [`<WebHost>`](#網站連線主機名稱)`/login`
 
         echo ">>> recv: $reply\n";
         $fields = explode("\t", $reply);
-        if ($fields[0] !== "SmartEHome" || count($fields) != 3) continue;
+        if ($fields[0] !== "SmartHOME" || count($fields) != 3) continue;
 
-        // SmartEHome [TAB] <encrypted> [TAB] <hmac>
+        // SmartHOME [TAB] <encrypted> [TAB] <hmac>
         if (base64_encode(hash_hmac("sha1", $fields[1], $hmac_key, true)) !== $fields[2]) {
             echo "*** Unmatch HMAC-SHA1:\n";
             echo "\$hmac_key  = hex2bin(\"".bin2hex($hmac_key)."\");\n";
