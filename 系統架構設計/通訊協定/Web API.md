@@ -73,7 +73,7 @@
 
 ## App 設備第一次要先向本地伺服器註冊
 
-url = `<local.web_api>/create_account`
+url = [`<local.web_api>`](#json)`/create_account`
 
 1. App 送出 `POST` 資料如下:
 
@@ -122,7 +122,7 @@ url = `<local.web_api>/create_account`
 
 ## 用戶取得已註冊設備
 
-url = `<local.web_api>/get_account`
+url = [`<local.web_api>`](#json)`/get_account`
 
 1. App 送出 `POST` 資料如下:
 
@@ -160,7 +160,7 @@ url = `<local.web_api>/get_account`
 
 ## 用戶刪除已註冊設備
 
-url = `<local.web_api>/delete_account`
+url = [`<local.web_api>`](#json)`/delete_account`
 
 1. App 送出 `POST` 資料如下:
 
@@ -195,7 +195,7 @@ url = `<local.web_api>/delete_account`
 
 ## 系統管理者取得新用戶的授權碼
 
-url = `<local.web_api>/get_authcode`
+url = [`<local.web_api>`](#json)`/get_authcode`
 
 1. App (系統管理者) 送出 `POST` 資料如下:
 
@@ -232,7 +232,7 @@ url = `<local.web_api>/get_authcode`
 
 ## App 登錄取得身份驗證令牌
 
-url = [`<WebHost>`](#網站連線主機名稱)`/login`
+url = [`<WebAPI>`](#網站連線主機名稱)`/login`
 
 取得 MQTT 通訊時所需的資訊。
 
