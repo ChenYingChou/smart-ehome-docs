@@ -40,7 +40,7 @@
             }
         }
         ```
-    * 以下所提到 `<本地伺服器ID>` 、 `<local.web_api>` 、 `<inet.web_api>` 是指此處 JSON 物件中 `server` 、 `local.web_api` 、 `inet.web_api` 的值，以本範例而言其值如下:
+    * 以下所提到 <span id="json">`<本地伺服器ID>`、`<local.web_api>`、`<inet.web_api>`</span> 是指此處 JSON 物件中 `server`、`local.web_api`、`inet.web_api` 的值，以本範例而言其值如下:
         * `<本地伺服器ID>`: `d2045940-5e38-11e8-bea1-77a4b0d356bf`
         * `<local.web_api>`: `https://dev.smart-ehome.com/api`
         * `<inet.web_api>`: `https://oisp.smart-ehome.com/api`
@@ -71,19 +71,29 @@
     * 參見 [客端 UDP 完整範例](#客端-udp-完整範例)。
 
 
-## App 第一次要先取得本地伺服器的授權帳號及密碼
+## App 設備第一次要先向本地伺服器註冊
 
-url = `<local.web_api>/createuser`
+url = `<local.web_api>/create_account`
 
 1. App 送出 `POST` 資料如下:
 
-    * 第 2 個起用戶必須向 admin 取得授權碼 (authcode)
+    第二個起的用戶第一次授權必須[向系統管理者取得授權碼](#系統管理者取得新用戶的授權碼) (authcode)，第一個註授權的用戶即為系統管理者。
 
     ```
     server=<本地伺服器ID>
-    username=<用戶自定名稱>
-    authcode=<向系統管理者取得授權碼>
+    userid=<用戶第三方認證ID>
+    username=<用戶名稱>
+    device=<設備名稱>
+    newdevice=<0,1>
+    authcode=<授權碼>
     ```
+
+    * [`<本地伺服器ID>`](#json): 由 UDP 取得。
+    * <span id="userid">`<用戶第三方認證ID>`</span>: 指 APP 在 Facebook 或 Google 取得的第三方認證識別 ID。由於本系統信任 APP 所指定的 `<用戶第三方認證ID>`，因此請 APP 設計者妥善保管此一資訊，最好能以加密方式保存之。
+    * `<用戶名稱>`: 為取自第三方認證帶過來的名稱，若無可省略此欄，本系統會以 `<用戶第三方認證ID>` 取代。
+    * `<設備名稱>`: 請 App 自行定義，如: iPhone、iPad、Sony ZX ...，以供後續調用區別。
+    * `newdevice` 為 1 時表示為此設備新建一個登入帳號，否則系統會尋找 `<設備名稱>` 是否已註冊，若是則會延用之前的登入帳號，只是重新設定一組新的密碼，這樣舊有設備將無法繼續登入使用。
+    * `<授權碼>`: 此欄位僅在 `<用戶第三方認證ID>` 第一次需向系統管理者取得之。若未帶此授權碼，除了第一個註冊的用戶外，其餘會回報錯誤如後所述。
 
 1. 網頁伺服器回覆:
 
@@ -93,15 +103,15 @@ url = `<local.web_api>/createuser`
         "server": "<伺服器ID>",
         "status": 0,                     	// 0:成功
         "payload": {
-            "user": "<用戶ID>",
-            "password": "<用戶密碼>"
+            "loginid": "<登入帳號>",
+            "password": "<登入密碼>"
         }
     }
 
     // 錯誤
     {
         "server": "<伺服器ID>",
-        "status": 1,                        // 1:需admin授權碼, 2:其他錯誤。請參見 <payload> 一欄錯誤訊息
+        "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
         "payload": "<錯誤訊息>"
     }
     ```
@@ -110,16 +120,89 @@ url = `<local.web_api>/createuser`
     * 每次新用戶授權碼使用後會失效，因此系統管理者要為每個新用戶重新取得一次授權碼。每次取得的用戶授權碼有效期間只有 4 個小時，超過時間後無法註冊為新用戶，請再重新取得授權碼註冊。
 
 
+## 用戶取得已註冊設備
+
+url = `<local.web_api>/get_account`
+
+1. App 送出 `POST` 資料如下:
+
+    ```
+    server=<本地伺服器ID>
+    userid=<用戶第三方認證ID>
+    ```
+
+    * [`<本地伺服器ID>`](#json): 由 UDP 取得。
+    * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
+    * 當 App 設備更換或不確定以前是否已註冊過某一設備型號時，可用此 API 取得用戶已註冊清單，再決定是否為新註冊設備。
+
+1. 網頁伺服器回覆:
+
+    ```js
+    // 正確
+    {
+        "server": "<伺服器ID>",
+        "status": 0,                     	// 0:成功
+        "payload": {
+            "userid": "<用戶第三方認證ID>",
+            "username": "<用戶名稱>",
+            "device": ["<設備名稱1>", "<設備名稱2>", ...]
+        }
+    }
+
+    // 錯誤
+    {
+        "server": "<伺服器ID>",
+        "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
+        "payload": "<錯誤訊息>"
+    }
+    ```
+
+
+## 用戶刪除已註冊設備
+
+url = `<local.web_api>/delete_account`
+
+1. App 送出 `POST` 資料如下:
+
+    ```
+    server=<本地伺服器ID>
+    userid=<用戶第三方認證ID>
+    device=<設備名稱>
+    ```
+
+    * [`<本地伺服器ID>`](#json): 由 UDP 取得。
+    * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
+    * 當用戶所有設備都已刪除時，本系統會自動移除此用戶帳號。
+
+1. 網頁伺服器回覆:
+
+    ```js
+    // 正確
+    {
+        "server": "<伺服器ID>",
+        "status": 0,                        // 0:成功
+        "payload": "<完成訊息>"              // 已刪除用戶、還有 n 個設備 ...
+    }
+
+    // 錯誤
+    {
+        "server": "<伺服器ID>",
+        "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
+        "payload": "<錯誤訊息>"
+    }
+    ```
+
+
 ## 系統管理者取得新用戶的授權碼
 
-url = `<local.web_api>/getauthcode`
+url = `<local.web_api>/get_authcode`
 
 1. App (系統管理者) 送出 `POST` 資料如下:
 
     ```
     server=<本地伺服器ID>
-    user=<系統管理者帳號>
-    password=<系統管理者密碼>
+    loginid=<系統管理者登入帳號>
+    password=<系統管理者登入密碼>
     ```
 
 1. 網頁伺服器回覆:
@@ -135,7 +218,7 @@ url = `<local.web_api>/getauthcode`
     // 錯誤
     {
         "server": "<伺服器ID>",
-        "status": 1,                        // 非零:錯誤, 請參見 <payload> 一欄錯誤訊息
+        "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
         "payload": "<錯誤訊息>"
     }
     ```
@@ -143,8 +226,8 @@ url = `<local.web_api>/getauthcode`
 
 ## 網站連線主機名稱
 
-1. 雲端伺服器連線: `<WebAPI> = <inet.web_api>`。
-1. 本地伺服器連線: `<WebAPI> = <local.web_api>`。
+1. 雲端伺服器連線: `<WebAPI>` = [`<inet.web_api>`](#json)。
+1. 本地伺服器連線: `<WebAPI>` = [`<local.web_api>`](#json)。
 
 
 ## App 登錄取得身份驗證令牌
@@ -157,8 +240,8 @@ url = [`<WebHost>`](#網站連線主機名稱)`/login`
 
     ```
     server=<本地伺服器ID>
-    user=<用戶ID>
-    password=<用戶密碼>
+    loginid=<登入帳號>
+    password=<登入密碼>
     ```
 
 1. 網頁伺服器回覆:
@@ -167,7 +250,7 @@ url = [`<WebHost>`](#網站連線主機名稱)`/login`
     {
         "server": "<伺服器ID>",
         "status": 0,                        // 0:成功, 非零:錯誤
-        "payload": {                        // MQTT 用物件 或 錯誤訊息
+        "payload": {                        // MQTT 用物件 或 錯誤訊息(字串)
             "router": "<routing key>",
             "clientid": "<cliet id>",
             "token": "<身份驗證令牌>"
