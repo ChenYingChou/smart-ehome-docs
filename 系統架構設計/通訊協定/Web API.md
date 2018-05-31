@@ -84,7 +84,7 @@ url = [`<local.web_api>`](#json)`/create_account`
     userid=<用戶第三方認證ID>
     username=<用戶名稱>
     device=<設備名稱>
-    newdevice=<0,1>
+    newdevice=<0,1,false,true>
     authcode=<授權碼>
     ```
 
@@ -92,7 +92,7 @@ url = [`<local.web_api>`](#json)`/create_account`
     * <span id="userid">`<用戶第三方認證ID>`</span>: 指 APP 在 Facebook 或 Google 取得的第三方認證識別 ID。由於本系統信任 APP 所指定的 `<用戶第三方認證ID>`，因此請 APP 設計者妥善保管此一資訊，最好能以加密方式保存之。
     * `<用戶名稱>`: 為取自第三方認證帶過來的名稱，若無可省略此欄，本系統會以 `<用戶第三方認證ID>` 取代。
     * `<設備名稱>`: 請 App 自行定義，如: iPhone、iPad、Sony XZ2 ...，以供後續調用區別。
-    * `newdevice` 為 1 時表示為此設備新建一個登入帳號，否則系統會尋找 `<設備名稱>` 是否已註冊，若是則會延用之前的登入帳號，只是重新設定一組新的密碼，這樣舊有設備將無法繼續登入使用。
+    * `newdevice` 為 1 或 true 時表示為此設備新建一個登入帳號，否則系統會尋找 `<設備名稱>` 是否已註冊，若是則會延用之前的登入帳號，只是重新設定一組新的密碼，這樣舊有設備將無法繼續登入使用。
     * `<授權碼>`: 此欄位僅在 `<用戶第三方認證ID>` 第一次需向系統管理者取得之。若未帶此授權碼，除了第一個註冊的用戶外，其餘會回報錯誤如後所述。
 
 1. 網頁伺服器回覆:
@@ -116,7 +116,7 @@ url = [`<local.web_api>`](#json)`/create_account`
     }
     ```
 
-    * 若收到 `status` = 1，請向系統管理者 (第一個註冊者) 取得新用戶授權碼後再試一次。
+    * 若收到 `status` = `2`，請向系統管理者 (第一個註冊者) 取得新用戶授權碼後再試一次。
     * 每次新用戶授權碼使用後會失效，因此系統管理者要為每個新用戶重新取得一次授權碼。每次取得的用戶授權碼有效期間只有 4 個小時，超過時間後無法註冊為新用戶，請再重新取得授權碼註冊。
 
 
@@ -222,6 +222,153 @@ url = [`<local.web_api>`](#json)`/get_authcode`
         "payload": "<錯誤訊息>"
     }
     ```
+
+
+## 取得註冊用戶名單
+
+url = [`<local.web_api>`](#json)`/get_reg_users`
+
+1. App (系統管理者) 送出 `POST` 資料如下:
+
+    ```
+    server=<本地伺服器ID>
+    userid=<用戶第三方認證ID>
+    device=<設備名稱>
+    loginid=<系統管理者登入帳號>
+    password=<系統管理者登入密碼>
+    ```
+
+    * [`<本地伺服器ID>`](#json): 由 UDP 取得。
+    * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
+    * `device`、`loginid`、`password`: 現在使用的設備及登入帳號、密碼。
+
+1. 網頁伺服器回覆:
+
+    ```js
+    // 正確
+    {
+        "server": "<伺服器ID>",
+        "status": 0,                     	// 0:成功
+        "payload": [
+            {
+                "userid": "<用戶1第三方認證ID>",
+                "name": "<用戶1名稱>",
+                "is_admin": true
+            },
+            {
+                "userid": "<用戶2第三方認證ID>",
+                "name": "<用戶2名稱>",
+                "is_admin": true
+            }
+            // 其他註冊用戶...
+        ]
+    }
+
+    // 錯誤
+    {
+        "server": "<伺服器ID>",
+        "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
+        "payload": "<錯誤訊息>"
+    }
+    ```
+
+    * 確認系統管理者身份無誤後，返回的 `<payload>` 為系統現行用戶名單 (陣列)。其中欄位 `is_admin` 表示該用戶是否為系統管理者。
+
+
+## 變更系統管理者身份
+
+url = [`<local.web_api>`](#json)`/update_reg_user`
+
+1. App (系統管理者) 送出 `POST` 資料如下:
+
+    ```
+    server=<本地伺服器ID>
+    userid=<用戶第三方認證ID>
+    device=<設備名稱>
+    loginid=<系統管理者登入帳號>
+    password=<系統管理者登入密碼>
+    target_userid=<用戶第三方認證ID>
+    is_admin=<0,1,false,true>
+    ```
+
+    * [`<本地伺服器ID>`](#json): 由 UDP 取得。
+    * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
+    * `device`、`loginid`、`password`: 現在使用的設備及登入帳號、密碼。
+    * `target_userid`、`is_admin`: 設定用戶 `target_userid` 管理者身份 (`is_admin`)。
+
+1. 網頁伺服器回覆:
+
+    ```js
+    // 正確
+    {
+        "server": "<伺服器ID>",
+        "status": 0,                     	// 0:成功
+        "payload": [
+            {
+                "userid": "<用戶1第三方認證ID>",
+                "name": "<用戶1名稱>",
+                "is_admin": true
+            },
+            {
+                "userid": "<用戶2第三方認證ID>",
+                "name": "<用戶2名稱>",
+                "is_admin": true
+            }
+            // 其他註冊用戶...
+        ]
+    }
+
+    // 錯誤
+    {
+        "server": "<伺服器ID>",
+        "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
+        "payload": "<錯誤訊息>"
+    }
+    ```
+
+    * 確認系統管理者身份無誤後，返回的 `<payload>` 為系統現行用戶名單 (陣列)。其中欄位 `is_admin` 表示該用戶是否為系統管理者。
+    * 本系統允許多個系統管理者。
+
+
+## 刪除註冊用戶
+
+url = [`<local.web_api>`](#json)`/delete_reg_user`
+
+1. App (系統管理者) 送出 `POST` 資料如下:
+
+    ```
+    server=<本地伺服器ID>
+    userid=<用戶第三方認證ID>
+    device=<設備名稱>
+    loginid=<系統管理者登入帳號>
+    password=<系統管理者登入密碼>
+    target_userid=<用戶第三方認證ID>
+    ```
+
+    * [`<本地伺服器ID>`](#json): 由 UDP 取得。
+    * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
+    * `device`、`loginid`、`password`: 現在使用的設備及登入帳號、密碼。
+    * `target_userid`: 刪除用戶 `target_userid` 及其下所有的註冊設備、登入資訊等。
+
+1. 網頁伺服器回覆:
+
+    ```js
+    // 正確
+    {
+        "server": "<伺服器ID>",
+        "status": 0,                     	// 0:成功
+        "payload": "<完成訊息>"
+    }
+
+    // 錯誤
+    {
+        "server": "<伺服器ID>",
+        "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
+        "payload": "<錯誤訊息>"
+    }
+    ```
+
+    * 用戶被刪除後，必須重新註冊設備後方可繼續使用本系統。
 
 
 ## 網站連線主機名稱
