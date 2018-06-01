@@ -2,7 +2,7 @@
 
 ## App 尋找本地伺服器
 
-若為私有 IP，則先以 UDP Port 9998 廣播尋找本地伺服器，若有回應則連接到指定伺服器，否則連到預設雲端伺服器 (`<inet.web_api>`: https://oisp.smart-ehome.com/api)。
+若為私有 IP，則先以 UDP Port 9998 廣播尋找本地伺服器，若有回應則連接到指定伺服器，否則連到預設雲端伺服器 (`<inet.web_api>`: `https://oisp.smart-ehome.com/api`)。
 
 1. 尋找本地伺服器 UDP 資料: `REQ SmartHOME [TAB] <port> [TAB] <client_key>`
     * `<port>` 為程式接收回應的 udp 埠, 零表示使用發送封包時的 port。
@@ -86,6 +86,7 @@ url = [`<local.web_api>`](#json)`/create_account`
     device=<設備名稱>
     newdevice=<0,1,false,true>
     authcode=<授權碼>
+    lang=zh-TW
     ```
 
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
@@ -94,6 +95,7 @@ url = [`<local.web_api>`](#json)`/create_account`
     * `<設備名稱>`: 請 App 自行定義，如: iPhone、iPad、Sony XZ2 ...，以供後續調用區別。
     * `newdevice` 為 1 或 true 時表示為此設備新建一個登入帳號，否則系統會尋找 `<設備名稱>` 是否已註冊，若是則會延用之前的登入帳號，只是重新設定一組新的密碼，這樣舊有設備將無法繼續登入使用。
     * `<授權碼>`: 此欄位僅在 `<用戶第三方認證ID>` 第一次需向系統管理者取得之。若未帶此授權碼，除了第一個註冊的用戶外，其餘會回報錯誤如後所述。
+    * [`lang`](#訊息語系-lang): 返回錯誤訊息使用語系。
 
 1. 網頁伺服器回覆:
 
@@ -120,7 +122,7 @@ url = [`<local.web_api>`](#json)`/create_account`
     * 每次新用戶授權碼使用後會失效，因此系統管理者要為每個新用戶重新取得一次授權碼。每次取得的用戶授權碼有效期間只有 4 個小時，超過時間後無法註冊為新用戶，請再重新取得授權碼註冊。
 
 
-## 用戶取得已註冊設備
+### 用戶取得已註冊設備
 
 url = [`<local.web_api>`](#json)`/get_account`
 
@@ -158,7 +160,7 @@ url = [`<local.web_api>`](#json)`/get_account`
     ```
 
 
-## 用戶刪除已註冊設備
+### 用戶刪除已註冊設備
 
 url = [`<local.web_api>`](#json)`/delete_account`
 
@@ -224,7 +226,9 @@ url = [`<local.web_api>`](#json)`/get_authcode`
     ```
 
 
-## 取得註冊用戶名單
+##
+
+### 取得註冊用戶名單
 
 url = [`<local.web_api>`](#json)`/get_reg_users`
 
@@ -275,7 +279,7 @@ url = [`<local.web_api>`](#json)`/get_reg_users`
     * 確認系統管理者身份無誤後，返回的 `<payload>` 為系統現行用戶名單 (陣列)。其中欄位 `is_admin` 表示該用戶是否為系統管理者。
 
 
-## 變更系統管理者身份
+### 變更系統管理者身份
 
 url = [`<local.web_api>`](#json)`/update_reg_user`
 
@@ -330,7 +334,7 @@ url = [`<local.web_api>`](#json)`/update_reg_user`
     * 本系統允許多個系統管理者。
 
 
-## 刪除註冊用戶
+### 刪除註冊用戶
 
 url = [`<local.web_api>`](#json)`/delete_reg_user`
 
@@ -371,12 +375,6 @@ url = [`<local.web_api>`](#json)`/delete_reg_user`
     * 用戶被刪除後，必須重新註冊設備後方可繼續使用本系統。
 
 
-## 網站連線主機名稱
-
-1. 雲端伺服器連線: `<WebAPI>` = [`<inet.web_api>`](#json)。
-1. 本地伺服器連線: `<WebAPI>` = [`<local.web_api>`](#json)。
-
-
 ## App 登錄取得身份驗證令牌
 
 url = [`<WebAPI>`](#網站連線主機名稱)`/login`
@@ -389,7 +387,10 @@ url = [`<WebAPI>`](#網站連線主機名稱)`/login`
     server=<本地伺服器ID>
     loginid=<登入帳號>
     password=<登入密碼>
+    lang=zh-TW
     ```
+
+    * [`lang`](#訊息語系-lang): 登入成功時，本系統會將您的語系存到對應的登入帳號。以後在 MQTT 通訊中若發生錯誤時，會以此刻指定的語系送出相關訊息。
 
 1. 網頁伺服器回覆:
 
@@ -405,8 +406,31 @@ url = [`<WebAPI>`](#網站連線主機名稱)`/login`
     }
     ```
 
+##
 
-## 客端 UDP 完整範例
+### 網站連線主機名稱
+
+1. 雲端伺服器連線: `<WebAPI>` = [`<inet.web_api>`](#json)。
+1. 本地伺服器連線: `<WebAPI>` = [`<local.web_api>`](#json)。
+
+
+### 訊息語系 (lang)
+
+* 此處是指 Web API 或 MQTT 中若遇到錯誤時返回的訊息語系，並不包含各模組或用戶自行設定的場所、設備、裝置的名稱。
+* 語系採用 [Web browser language identification codes](https://www.metamodpro.com/browser-language-codes) 標準設定，以 2~5 碼表示 (不分大小寫):
+    1. 依順找不到適用的語系時，預設為 `en` 英語語系。
+    1. 台灣語系為 `zh-TW`，可簡寫為 `tw`。
+    1. 中國大陸語系為 `zh-CN`，可簡寫為 `cn`。
+* Web API 可於下列位置指定返回錯誤訊息的語系: (依優先順序高到低)
+    1. 在 Post 中指定: `lang=zh-TW`。
+    1. 在 URL 查詢字串 (query string) 指定，如: `https://hostname/api/create_account?lang=zh-TW`。
+    1. HTTP 標題中的 "Accept-Language" 指定的順序。通常瀏覽器會有預設語系，例如 Google Chrome 可能帶的如下:\
+    `Accept-Language: zh-TW,zh;q=0.9,zh-CN;q=0.8,en-US;q=0.7,en;q=0.6` \
+    表示語系的順序為: `zh-TW` → `zh` → `zh-CN` → `en-US` → `en。`
+* 目前本系統預設語系有 `en` (`en-??`)`、tw` (`zh-TW`)`、cn` (`zh-CN`)。
+
+
+### 客端 UDP 完整範例
 
 * node js:
 
