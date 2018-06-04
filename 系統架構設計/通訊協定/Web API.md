@@ -84,7 +84,7 @@ url = [`<local.web_api>`](#json)`/create_account`
     userid=<用戶第三方認證ID>
     username=<用戶名稱>
     device=<設備名稱>
-    newdevice=<0,1,false,true>
+    newdevice=<0,1>
     authcode=<授權碼>
     lang=zh-TW
     ```
@@ -93,7 +93,7 @@ url = [`<local.web_api>`](#json)`/create_account`
     * <span id="userid">`<用戶第三方認證ID>`</span>: 指 APP 在 Facebook 或 Google 取得的第三方認證識別 ID。由於本系統信任 APP 所指定的 `<用戶第三方認證ID>`，因此請 APP 設計者妥善保管此一資訊，最好能以加密方式保存之。
     * `<用戶名稱>`: 為取自第三方認證帶過來的名稱，若無可省略此欄，本系統會以 `<用戶第三方認證ID>` 取代。
     * `<設備名稱>`: 請 App 自行定義，如: iPhone、iPad、Sony XZ2 ...，以供後續調用區別。
-    * `newdevice` 為 1 或 true 時表示為此設備新建一個登入帳號，否則系統會尋找 `<設備名稱>` 是否已註冊，若是則會延用之前的登入帳號，只是重新設定一組新的密碼，這樣舊有設備將無法繼續登入使用。
+    * `newdevice` 為 1 時表示為此設備新建一個登入帳號，否則系統會尋找 `<設備名稱>` 是否已註冊，若是則會延用之前的登入帳號，只是重新設定一組新的密碼，這樣舊有設備將無法繼續登入使用。
     * `<授權碼>`: 此欄位僅在 `<用戶第三方認證ID>` 第一次需向系統管理者取得之。若未帶此授權碼，除了第一個註冊的用戶外，其餘會回報錯誤如後所述。
     * [`lang`](#訊息語系-lang): 返回錯誤訊息使用語系。
 
@@ -147,7 +147,7 @@ url = [`<local.web_api>`](#json)`/get_account`
         "payload": {
             "userid": "<用戶第三方認證ID>",
             "username": "<用戶名稱>",
-            "device": ["<設備名稱1>", "<設備名稱2>", ...]
+            "devices": ["<設備名稱1>", "<設備名稱2>", ...]
         }
     }
 
@@ -257,12 +257,12 @@ url = [`<local.web_api>`](#json)`/get_reg_users`
             {
                 "userid": "<用戶1第三方認證ID>",
                 "name": "<用戶1名稱>",
-                "is_admin": true
+                "is_admin": 1
             },
             {
                 "userid": "<用戶2第三方認證ID>",
                 "name": "<用戶2名稱>",
-                "is_admin": true
+                "is_admin": 0
             }
             // 其他註冊用戶...
         ]
@@ -292,7 +292,7 @@ url = [`<local.web_api>`](#json)`/update_reg_user`
     loginid=<系統管理者登入帳號>
     password=<系統管理者登入密碼>
     target_userid=<用戶第三方認證ID>
-    is_admin=<0,1,false,true>
+    is_admin=<0,1>
     ```
 
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
@@ -311,12 +311,12 @@ url = [`<local.web_api>`](#json)`/update_reg_user`
             {
                 "userid": "<用戶1第三方認證ID>",
                 "name": "<用戶1名稱>",
-                "is_admin": true
+                "is_admin": 1
             },
             {
                 "userid": "<用戶2第三方認證ID>",
                 "name": "<用戶2名稱>",
-                "is_admin": true
+                "is_admin": 0
             }
             // 其他註冊用戶...
         ]
@@ -508,7 +508,7 @@ url = [`<WebAPI>`](#網站連線主機名稱)`/login`
 
     $hmac_key = $client_key;  // key for HMAC-SHA1
     while (true) {
-        if (socket_recv($sock, $reply, 8192, MSG_WAITALL) === FALSE) {
+        if (socket_recv($sock, $reply, 8192, MSG_WAITALL) === false) {
             $errorcode = socket_last_error();
             $errormsg = socket_strerror($errorcode);
             die("Could not receive data: [$errorcode] $errormsg \n");
