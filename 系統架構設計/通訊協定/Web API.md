@@ -237,14 +237,13 @@ url = [`<local.web_api>`](#json)`/get_reg_users`
     ```
     server=<本地伺服器ID>
     userid=<用戶第三方認證ID>
-    device=<設備名稱>
     loginid=<系統管理者登入帳號>
     password=<系統管理者登入密碼>
     ```
 
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
     * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
-    * `device`、`loginid`、`password`: 現在使用的設備及登入帳號、密碼。
+    * `loginid`、`password`: 需驗證的登入帳號、密碼。
 
 1. 網頁伺服器回覆:
 
@@ -288,17 +287,18 @@ url = [`<local.web_api>`](#json)`/update_reg_user`
     ```
     server=<本地伺服器ID>
     userid=<用戶第三方認證ID>
-    device=<設備名稱>
     loginid=<系統管理者登入帳號>
     password=<系統管理者登入密碼>
     target_userid=<用戶第三方認證ID>
+    target_name=<用戶名稱>
     is_admin=<0,1>
     ```
 
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
     * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
-    * `device`、`loginid`、`password`: 現在使用的設備及登入帳號、密碼。
+    * `loginid`、`password`: 需驗證的登入帳號、密碼。
     * `target_userid`、`is_admin`: 設定用戶 `target_userid` 管理者身份 (`is_admin`)。
+    * `target_name`: 不為空白時才更新用戶名稱，此欄位可省略。
 
 1. 網頁伺服器回覆:
 
@@ -307,19 +307,7 @@ url = [`<local.web_api>`](#json)`/update_reg_user`
     {
         "server": "<伺服器ID>",
         "status": 0,                     	// 0:成功
-        "payload": [
-            {
-                "userid": "<用戶1第三方認證ID>",
-                "name": "<用戶1名稱>",
-                "is_admin": 1
-            },
-            {
-                "userid": "<用戶2第三方認證ID>",
-                "name": "<用戶2名稱>",
-                "is_admin": 0
-            }
-            // 其他註冊用戶...
-        ]
+        "payload": "<成功訊息>"
     }
 
     // 錯誤
@@ -343,7 +331,6 @@ url = [`<local.web_api>`](#json)`/delete_reg_user`
     ```
     server=<本地伺服器ID>
     userid=<用戶第三方認證ID>
-    device=<設備名稱>
     loginid=<系統管理者登入帳號>
     password=<系統管理者登入密碼>
     target_userid=<用戶第三方認證ID>
@@ -351,7 +338,7 @@ url = [`<local.web_api>`](#json)`/delete_reg_user`
 
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
     * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
-    * `device`、`loginid`、`password`: 現在使用的設備及登入帳號、密碼。
+    * `loginid`、`password`: 需驗證的登入帳號、密碼。
     * `target_userid`: 刪除用戶 `target_userid` 及其下所有的註冊設備、登入資訊等。
 
 1. 網頁伺服器回覆:
@@ -428,6 +415,21 @@ url = [`<WebAPI>`](#網站連線主機名稱)`/login`
     `Accept-Language: zh-TW,zh;q=0.9,zh-CN;q=0.8,en-US;q=0.7,en;q=0.6` \
     表示語系的順序為: `zh-TW` → `zh` → `zh-CN` → `en-US` → `en。`
 * 目前本系統預設語系有 `en` (`en-??`)`、tw` (`zh-TW`)`、cn` (`zh-CN`)。
+
+
+### 網頁伺服器回覆 status 錯誤處理
+
+* `status = 1` 表示一般性錯誤，使用者請依訊息做對應處理即可，程式不需特別處理。除非在 API 中另有說明。
+
+* `status = 2` 請依 API 中說明處理，例如 [App 設備第一次要先向本地伺服器註冊](#app-設備第一次要先向本地伺服器註冊)。
+
+* `status >= 10` 表示進入系統資料庫前發生錯誤，無法進行用戶、帳號授權及登入等處理:
+
+    | status | 訊息 | 處理措施 |
+    |:---:|:---:|---|
+    | 10 | 無效的伺服器 ID | 請確認您所連接是正確的伺服器, 或是請重新用 [UDP 尋找本地伺服器](#app-尋找本地伺服器) |
+    | 11 | 未指派命令 | 請檢查 url "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 格式是否正確, 此錯誤表示您未指定 `<命令>` |
+    | 12 | 無效的命令 | 請檢查 url "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 中的 `<命令>` 是否正確,<br>如: App 登錄 [`https://dev.smart-ehome.com/api/login`](#app-登錄取得身份驗證令牌) |
 
 
 ### 客端 UDP 完整範例
