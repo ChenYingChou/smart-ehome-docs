@@ -169,11 +169,15 @@ url = [`<local.web_api>`](#json)`/delete_account`
     ```
     server=<本地伺服器ID>
     userid=<用戶第三方認證ID>
+    loginid=<登入帳號>
+    password=<登入密碼>
     device=<設備名稱>
     ```
 
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
     * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
+    * `loginid`、`password`: 必需要屬於用戶 `userid` 的任一設備帳號，以驗證用戶的合法性。
+    * `device`: 驗證合法用戶後將用戶指定的設備刪除之。
     * 當用戶所有設備都已刪除時，本系統會自動移除此用戶帳號。
 
 1. 網頁伺服器回覆:
