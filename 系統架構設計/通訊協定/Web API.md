@@ -40,7 +40,7 @@
             }
         }
         ```
-    * 以下所提到 <span id="json"></span>`<本地伺服器ID>`、`<local.web_api>`、`<inet.web_api>` 是指此處 JSON 物件中 `server`、`local.web_api`、`inet.web_api` 的值，以本範例而言其值如下:
+    * 以下所提到 <b id="json"></b>`<本地伺服器ID>`、`<local.web_api>`、`<inet.web_api>` 是指此處 JSON 物件中 `server`、`local.web_api`、`inet.web_api` 的值，以本範例而言其值如下:
         * `<本地伺服器ID>`: `d2045940-5e38-11e8-bea1-77a4b0d356bf`
         * `<local.web_api>`: `https://dev.smart-ehome.com/api`
         * `<inet.web_api>`: `https://oisp.smart-ehome.com/api`
