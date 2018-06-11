@@ -167,15 +167,13 @@ url = [`<local.web_api>`](#json)`/delete_account`
 
     ```
     server=<本地伺服器ID>
-    userid=<用戶第三方認證ID>
     loginid=<登入帳號>
     password=<登入密碼>
     target_device=<設備名稱>
     ```
 
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
-    * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
-    * `loginid`、`password`: 必需要屬於用戶 `userid` 其中之一的設備帳號，以驗證用戶的合法性。通常就是 App 安裝所在的設備，每次註冊後必須將帳號、密碼儲存起來。
+    * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。通常就是 App 安裝所在的設備，每次註冊後必須將帳號、密碼儲存起來。
     * `target_device`: 驗證用戶合法性後會將指定的設備刪除之，請注意這裡的是指要刪除的設備，不是帳號 `loginid` 關聯的設備，小心不要誤刪除自己本身。
     * 若不是系統管理者時，當用戶所有註冊設備都已清空時，本系統會自動移除此用戶資訊。若是系統管理者名下已無註冊設備，在[重新註冊一個新的設備](#app-設備第一次要先向本地伺服器註冊)時並不需要授權碼驗證。
 
@@ -239,14 +237,12 @@ url = [`<local.web_api>`](#json)`/get_reg_users`
 
     ```
     server=<本地伺服器ID>
-    userid=<用戶第三方認證ID>
     loginid=<系統管理者登入帳號>
     password=<系統管理者登入密碼>
     ```
 
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
-    * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
-    * `loginid`、`password`: 需驗證的登入帳號、密碼。
+    * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。
 
 1. 網頁伺服器回覆:
 
@@ -289,7 +285,6 @@ url = [`<local.web_api>`](#json)`/update_reg_user`
 
     ```
     server=<本地伺服器ID>
-    userid=<用戶第三方認證ID>
     loginid=<系統管理者登入帳號>
     password=<系統管理者登入密碼>
     target_userid=<用戶第三方認證ID>
@@ -298,8 +293,7 @@ url = [`<local.web_api>`](#json)`/update_reg_user`
     ```
 
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
-    * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
-    * `loginid`、`password`: 需驗證的登入帳號、密碼。
+    * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。
     * `target_userid`、`is_admin`: 設定用戶 `target_userid` 管理者身份 (`is_admin`)。
     * `target_name`: 不為空白時才更新用戶名稱，此欄位可省略。
 
@@ -333,7 +327,6 @@ url = [`<local.web_api>`](#json)`/delete_reg_user`
 
     ```
     server=<本地伺服器ID>
-    userid=<用戶第三方認證ID>
     loginid=<系統管理者登入帳號>
     password=<系統管理者登入密碼>
     target_userid=<用戶第三方認證ID>
@@ -341,7 +334,7 @@ url = [`<local.web_api>`](#json)`/delete_reg_user`
 
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
     * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
-    * `loginid`、`password`: 需驗證的登入帳號、密碼。
+    * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。
     * `target_userid`: 刪除用戶 `target_userid` 及其下所有的註冊設備、登入資訊等。
 
 1. 網頁伺服器回覆:
