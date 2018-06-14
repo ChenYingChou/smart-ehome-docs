@@ -390,12 +390,16 @@ url = [`<WebAPI>`](#網站連線主機名稱)`/login`
         "server": "<伺服器ID>",
         "status": 0,                        // 0:成功, 非零:錯誤
         "payload": {                        // MQTT 用物件 或 錯誤訊息(字串)
-            "router": "<routing key>",
-            "clientid": "<cliet id>",
-            "token": "<身份驗證令牌>"
+            "clientid": "<client_id>",
+            "topic": {
+                "pub": "to/",
+                "sub": ["from/#", "to/xxxx", "to/yyyy"]
+            }
         }
     }
     ```
+
+    * `<client_id>`
 
 ##
 
