@@ -71,6 +71,23 @@
     * 參見 [客端 UDP 完整範例](#客端-udp-完整範例)。
 
 
+## 網站連線主機名稱
+
+1. 雲端伺服器連線: `<WebAPI>` = [`<inet.web_api>`](#json)。
+1. 本地伺服器連線: `<WebAPI>` = [`<local.web_api>`](#json)。
+
+
+## HTTP Header Origin
+
+以下使用 Web API 時請一律帶 http header `Origin` 如下:
+
+```
+Origin: <WebAPI_origin>
+```
+
+* `<WebAPI_origin>` 來自 url `<WebAPI>` 中的主機名稱部份。例如: `https://dev.smart-ehome.com/api` 則為 `https://dev.smart-ehome.com`。
+
+
 ## App 設備第一次要先向本地伺服器註冊
 
 url = [`<local.web_api>`](#json)`/create_account`
@@ -121,7 +138,7 @@ url = [`<local.web_api>`](#json)`/create_account`
     * 每次授權碼使用後會失效，因此系統管理者要為每個新設備取得授權碼。每次取得的授權碼有效期間只有 4 個小時，超過時間後將無法註冊新設備，請重新取得授權碼後再註冊設備。
 
 
-### 用戶取得已註冊設備
+## 用戶取得已註冊設備
 
 url = [`<local.web_api>`](#json)`/get_accounts`
 
@@ -167,7 +184,7 @@ url = [`<local.web_api>`](#json)`/get_accounts`
     ```
 
 
-### 用戶刪除已註冊設備
+## 用戶刪除已註冊設備
 
 url = [`<local.web_api>`](#json)`/delete_account`
 
@@ -235,9 +252,7 @@ url = [`<local.web_api>`](#json)`/get_authcode`
     ```
 
 
-##
-
-### 取得註冊用戶名單
+## 取得註冊用戶名單
 
 url = [`<local.web_api>`](#json)`/get_reg_users`
 
@@ -285,7 +300,7 @@ url = [`<local.web_api>`](#json)`/get_reg_users`
     * 確認系統管理者身份無誤後，返回的 `<payload>` 為系統現行用戶名單 (陣列)。其中欄位 `is_admin` 表示該用戶是否為系統管理者。
 
 
-### 變更系統管理者身份
+## 變更系統管理者身份
 
 url = [`<local.web_api>`](#json)`/update_reg_user`
 
@@ -327,7 +342,7 @@ url = [`<local.web_api>`](#json)`/update_reg_user`
     * 本系統允許多個系統管理者。
 
 
-### 刪除註冊用戶
+## 刪除註冊用戶
 
 url = [`<local.web_api>`](#json)`/delete_reg_user`
 
@@ -401,15 +416,8 @@ url = [`<WebAPI>`](#網站連線主機名稱)`/login`
 
     * `<client_id>`
 
-##
 
-### 網站連線主機名稱
-
-1. 雲端伺服器連線: `<WebAPI>` = [`<inet.web_api>`](#json)。
-1. 本地伺服器連線: `<WebAPI>` = [`<local.web_api>`](#json)。
-
-
-### 訊息語系 (lang)
+## 訊息語系 (lang)
 
 * 此處是指 Web API 或 MQTT 中若遇到錯誤時返回的訊息語系，並不包含各模組或用戶自行設定的場所、設備、裝置的名稱。
 * 語系採用 [Web browser language identification codes](https://www.metamodpro.com/browser-language-codes) 標準設定，以 2~5 碼表示 (不分大小寫):
@@ -425,7 +433,7 @@ url = [`<WebAPI>`](#網站連線主機名稱)`/login`
 * 目前本系統預設語系有 `en` (`en-??`)`、tw` (`zh-TW`)`、cn` (`zh-CN`)。
 
 
-### 網頁伺服器回覆 status 錯誤處理
+## 網頁伺服器回覆 status 錯誤處理
 
 * `status = 1` 表示一般性錯誤，使用者請依訊息做對應處理即可，程式不需特別處理。除非在 API 中另有說明。
 
@@ -440,7 +448,7 @@ url = [`<WebAPI>`](#網站連線主機名稱)`/login`
     | 12 | 無效的命令 | 請檢查 url "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 中的 `<命令>` 是否正確,<br>如: App 登錄 [`https://dev.smart-ehome.com/api/login`](#app-登錄取得身份驗證令牌) |
 
 
-### 客端 UDP 完整範例
+## 客端 UDP 完整範例
 
 * node js:
 
