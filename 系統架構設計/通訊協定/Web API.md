@@ -86,7 +86,22 @@ Origin: <WebAPI_origin>
 ```
 
 * `<WebAPI_origin>` 來自 url `<WebAPI>` 中的主機名稱部份。例如: `https://dev.smart-ehome.com/api` 則為 `https://dev.smart-ehome.com`。
-
+* php 解析出 `<WebAPI_origin>` (繼續前面 UDP 範例)
+    ```php
+    $obj = json_decode($text, true);
+    $url = $obj['local']['web_api'];
+    $items = parse_url($url);
+    $origin = "{$items['scheme']}://{$items['host']}";
+    echo $origin;
+    ```
+* js 解析出 `<WebAPI_origin>`
+    ```js
+    let obj = JSON.parse(text);
+    let url = obj.local.web_api;
+    let mx = url.match(/(\w+):\/\/(?:.+?:.+?@)?(.*?)(?::\d+)?\//);
+    let origin = `${mx[1]}://${mx[2]}`;
+    console.log(origin);
+    ```
 
 ## App 設備第一次要先向本地伺服器註冊
 
