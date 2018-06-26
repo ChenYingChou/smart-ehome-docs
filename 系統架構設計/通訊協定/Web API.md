@@ -80,18 +80,66 @@
 ## RESTful 一律採用 POST 方法
 
 1. 為了安全起見 RESTful 一律採用 POST 方法，網站儘可能使用 SSL 加密，以避免帳戶資料的外洩。
-1. `POST` 資料內容可選擇下列兩種表示法，請於 HTTP 標題指定 `Content-Type`:
+1. `POST` 資料內容可選擇下列兩種表示法，請於 HTTP 標題指定 `Content-Type`:\
+    以 [App 設備第一次要先向本地伺服器註冊 `create_account`](#app-設備第一次要先向本地伺服器註冊) 範例說明:
+    ```
+    server=<本地伺服器ID>
+    userid=<用戶第三方認證ID>
+    username=<用戶名稱>
+    device=<設備名稱>
+    authcode=<授權碼>
+    lang=zh-TW
+    ```
+    實際內容為:
+    ```
+    server=d2045940-5e38-11e8-bea1-77a4b0d356bf
+    userid=AX1234567890
+    username=Sam Wang
+    device=iPhone 7
+    authcode=1G78F95W8F
+    lang=zh-TW
+    ```
     * JSON: `Content-Type: application/json`
+        ```json
+        {
+            "server": "d2045940-5e38-11e8-bea1-77a4b0d356bf",
+            "userid": "AX1234567890",
+            "username": "Sam Wang",
+            "device": "iPhone 7",
+            "authcode": "1G78F95W8F",
+            "lang": "zh-TW"
+        }
+        ```
     * Form Urlencoded: `Content-Type: application/x-www-form-urlencoded`
+        ```
+        server=d2045940-5e38-11e8-bea1-77a4b0d356bf&userid=AX1234567890&username=Sam%20Wang&device=iPhone%207&authcode=1G78F95W8F&lang=zh-TW
+        ```
+1. 伺服器回覆一律為 JSON 格式 (`Content-Type: application/json; charset=utf-8`)\
+    以下 JSON 格式中的註解僅為說明用，實際返回不包含這些註解:
+    ```js
+    // 正確
+    {
+        "server": "<伺服器ID>",
+        "status": 0,                     	// 0:成功
+        "payload": _視各功能返回不同型態的_物件_陣列_或_字串_
+    }
+
+    // 錯誤
+    {
+        "server": "<伺服器ID>",
+        "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
+        "payload": "<錯誤訊息>"
+    }
+    ```
 
 
 ## App 設備第一次要先向本地伺服器註冊
 
-url = [`<local.web_api>`](#json)`/create_account`
+URI = [`<local.web_api>`](#json)`/create_account`
 
 1. App 送出 `POST` 資料如下:
 
-    第二個起的用戶第一次授權必須[向系統管理者取得授權碼](#系統管理者取得新用戶的授權碼) (authcode)，第一個註授權的用戶即為系統管理者。
+    第二個起的用戶第一次授權必須向 [系統管理者取得新用戶的授權碼 `get_authcode`](#系統管理者取得新用戶的授權碼)，第一個註冊的用戶即為系統管理者 (此時不檢查 `authcode`)。
 
     ```
     server=<本地伺服器ID>
@@ -137,7 +185,7 @@ url = [`<local.web_api>`](#json)`/create_account`
 
 ## 用戶取得已註冊設備
 
-url = [`<local.web_api>`](#json)`/get_accounts`
+URI = [`<local.web_api>`](#json)`/get_accounts`
 
 1. App 送出 `POST` 資料如下:
 
@@ -183,7 +231,7 @@ url = [`<local.web_api>`](#json)`/get_accounts`
 
 ## 用戶刪除已註冊設備
 
-url = [`<local.web_api>`](#json)`/delete_account`
+URI = [`<local.web_api>`](#json)`/delete_account`
 
 1. App 送出 `POST` 資料如下:
 
@@ -220,7 +268,7 @@ url = [`<local.web_api>`](#json)`/delete_account`
 
 ## 系統管理者取得新用戶的授權碼
 
-url = [`<local.web_api>`](#json)`/get_authcode`
+URI = [`<local.web_api>`](#json)`/get_authcode`
 
 1. App (系統管理者) 送出 `POST` 資料如下:
 
@@ -251,7 +299,7 @@ url = [`<local.web_api>`](#json)`/get_authcode`
 
 ## 取得註冊用戶名單
 
-url = [`<local.web_api>`](#json)`/get_reg_users`
+URI = [`<local.web_api>`](#json)`/get_reg_users`
 
 1. App (系統管理者) 送出 `POST` 資料如下:
 
@@ -299,7 +347,7 @@ url = [`<local.web_api>`](#json)`/get_reg_users`
 
 ## 變更系統管理者身份
 
-url = [`<local.web_api>`](#json)`/update_reg_user`
+URI = [`<local.web_api>`](#json)`/update_reg_user`
 
 1. App (系統管理者) 送出 `POST` 資料如下:
 
@@ -341,7 +389,7 @@ url = [`<local.web_api>`](#json)`/update_reg_user`
 
 ## 刪除註冊用戶
 
-url = [`<local.web_api>`](#json)`/delete_reg_user`
+URI = [`<local.web_api>`](#json)`/delete_reg_user`
 
 1. App (系統管理者) 送出 `POST` 資料如下:
 
@@ -380,7 +428,7 @@ url = [`<local.web_api>`](#json)`/delete_reg_user`
 
 ## App 登錄取得身份驗證令牌
 
-url = [`<WebAPI>`](#網站連線主機名稱)`/login`
+URI = [`<WebAPI>`](#網站連線主機名稱)`/login`
 
 取得 MQTT 通訊時所需的資訊。
 
@@ -416,6 +464,7 @@ url = [`<WebAPI>`](#網站連線主機名稱)`/login`
 
 ## 訊息語系 (lang)
 
+* 訊息語系為選項，可省略。
 * 此處是指 Web API 或 MQTT 中若遇到錯誤時返回的訊息語系，並不包含各模組或用戶自行設定的場所、設備、裝置的名稱。
 * 語系採用 [Web browser language identification codes](https://www.metamodpro.com/browser-language-codes) 標準設定，以 2~5 碼表示 (不分大小寫):
     1. 依順找不到適用的語系時，預設為 `en` 英語語系。
@@ -423,11 +472,11 @@ url = [`<WebAPI>`](#網站連線主機名稱)`/login`
     1. 中國大陸使用簡體中文語系代碼為 `zh-CN`，可簡寫為 `cn`。
 * Web API 可於下列位置指定返回錯誤訊息的語系: (依優先順序高到低)
     1. 在 Post 中指定: `lang=zh-TW`。
-    1. 在 URL 查詢字串 (query string) 指定，如: `https://hostname/api/create_account?lang=zh-TW`。
+    1. 在 URI 查詢字串 (query string) 指定，如: `https://hostname/api/create_account?lang=zh-TW`。
     1. HTTP 標題中的 "Accept-Language" 指定的順序。通常瀏覽器會有預設語系，例如 Google Chrome 可能帶的如下:\
     `Accept-Language: zh-TW,zh;q=0.9,zh-CN;q=0.8,en-US;q=0.7,en;q=0.6` \
-    表示語系的順序為: `zh-TW` → `zh` → `zh-CN` → `en-US` → `en。`
-* 目前本系統預設語系有 `en` (`en-??`)`、tw` (`zh-TW`)`、cn` (`zh-CN`)。
+    表示語系的順序為: `zh-TW` → `zh` → `zh-CN` → `en-US` → `en`。
+* 目前本系統預設語系有 `en` (`en-??`)、`tw` (`zh-TW`)、`cn` (`zh-CN`)。
 
 
 ## 網頁伺服器回覆 status 錯誤處理
@@ -441,8 +490,8 @@ url = [`<WebAPI>`](#網站連線主機名稱)`/login`
     | status | 訊息 | 處理措施 |
     |:---:|:---:|---|
     | 10 | 無效的伺服器 ID | 請確認您所連接是正確的伺服器, 或是請重新用 [UDP 尋找本地伺服器](#app-尋找本地伺服器) |
-    | 11 | 未指派命令 | 請檢查 url "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 格式是否正確, 此錯誤表示您未指定 `<命令>` |
-    | 12 | 無效的命令 | 請檢查 url "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 中的 `<命令>` 是否正確,<br>如: App 登錄 [`https://dev.smart-ehome.com/api/login`](#app-登錄取得身份驗證令牌) |
+    | 11 | 未指派命令 | 請檢查 URI "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 格式是否正確, 此錯誤表示您未指定 `<命令>` |
+    | 12 | 無效的命令 | 請檢查 URI "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 中的 `<命令>` 是否正確,<br>如: App 登錄 [`https://dev.smart-ehome.com/api/login`](#app-登錄取得身份驗證令牌) |
 
 
 ## 客端 UDP 完整範例
