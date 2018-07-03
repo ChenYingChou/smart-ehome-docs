@@ -63,6 +63,7 @@
                         "version": _version_,
                         "name": "**設備名稱**",
                         "type": "**設備型號**",
+                        "icon_id": "__設備清單id__",
                         "functions": {          // 功能物件
                             "__功能ID__": {
                                 "name": "**功能名稱**",
@@ -275,6 +276,7 @@
                 "version": _version_,
                 "name": "**自定設備名稱**",
                 "type": "**設備型號**",
+                "icon_id": "__設備清單id__",
                 "functions": {              // 功能物件
                     "**自定功能ID**": {
                         "name": "**自定功能名稱**",
