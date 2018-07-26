@@ -1,0 +1,156 @@
+﻿
+
+# APP資料集
+
+ ![N|Solid](https://md.smart-ehome.com/amma/manual/img/appdata/1.png)
+
+### Document
+使用者專屬資料夾位於『Document』之下。
+使用者專屬資料夾名稱以登入UserID轉ＭＤ5命名。
+
+使用者專屬資料夾（以下以專屬資料夾稱之）基本會有資料夾如下 ：
+ - 專屬資料夾/temp  : 使用精靈暫存區,完成後temp資料夾更名為*homeid*
+ - 專屬資料夾/*homeid* 
+ - 專屬資料夾/*homeid*/wizard  : 頁面正式組態檔（待）
+ - 專屬資料夾/*homeid*/packag  : 頁面組態套用UI產生的頁面檔（待）
+
+ - 帳號資料？account.json (local)
+（待）
+
+ ### Document/專屬資料夾
+ - 首頁資料 ( homelist.json )
+ 記錄所有項目清單。
+
+ ```json
+{
+	"homes":{
+				"homeid":{  
+					"name":"", 		//顯示名稱
+					"icon":"", 		//顯示圖示
+					"sort":"",
+					"token":"",	
+					"uiid":""		//使用的UI樣式
+					},
+				"homeid":{
+					"name":"",
+					"icon":"",
+					"sort":"",
+					"token":"",
+					"uiid":""
+				}
+			}
+	,
+	"key":""						// OISP API ClientKey
+}
+```
+
+
+### Document/專屬資料夾/temp
+
+ - 伺服器連線資訊 ServerInfo.txt（from server）
+加密：Base64 >  AES  CTR 
+解密 :  AES  CTR > Base64
+
+ ```json
+{
+	"server": "xxx-xxx-xxx-xxx-xxx",
+	"name": "xxx",
+	"local": {
+	"web_api": "https://dev.xxx.com/api",
+	"mqtt_host": "dev.xxx.com",
+	"mqtt_port": 1883,
+	"mqtt_ssl_port": 8883
+	},
+	"inet": {
+	"web_api": "https://oisp.xxx.com/api",
+	"mqtt_host": "oisp.xxx.com",
+	"mqtt_port": 1883,
+	"mqtt_ssl_port": 8883
+	}
+}
+ ```
+ - moduleData  ModuleList.json(from server）
+
+ - 模組設備功能名稱 moduleconfig.json (local)
+ 
+ - 情境  sceneList.json (local)
+
+ ```json
+{
+	"scenes": {
+		"**情境ID**1": {
+			"name": "**情境名稱**",
+			"icon_id":"",
+			"active": true,
+			"delay0": 0,
+			"mode": 1,
+			"actions": [{
+				"id": "**模組ID+設備ID+功能ID**",
+				"delay0": 0,
+				"value": "**值**"
+				},{
+				"id": "**模組ID+設備ID+功能ID**",
+				"delay0": 0,
+				"value": "**值**"
+				}
+			]
+		},
+		"**情境ID**2": {
+			"name": "**情境名稱**",
+			"icon_id":"",
+			"active": true,
+			"delay0": 0,
+			"mode": 1,
+			"actions": [{
+				"id": "**模組ID+設備ID+功能ID**",
+				"delay0": 0,
+				"value": "**值**"
+				},{
+				"id": "**模組ID+設備ID+功能ID**",
+				"delay0": 0,
+				"value": "**值**"
+				}
+			]
+		}
+	}
+}
+```
+
+ - 頁面清單  pageList.json (local)
+
+ ```json
+{
+    "pages":{
+		"pageid":{
+            "name":"",
+            "ico_id":"",
+            "action":"" 
+        },
+		"pageid":{
+            "name":"",
+            "ico_id":"",
+            "action":""
+        }
+	}
+}
+
+```
+- 頁面內容 [pageid].json
+
+ ```json
+{
+    "nodes":{
+		"nodeid":{
+            "caption":"",
+            "action": "**模組ID+設備ID+功能ID**"
+        },
+		"nodeid":{
+            "caption":"",
+            "action": "**模組ID+設備ID+功能ID**"
+        }
+	}      
+}
+
+```	  
+
+
