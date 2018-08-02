@@ -153,4 +153,10 @@
 
 ```	  
 
+# Wizard
+與內購相關頁面組態檔，整體內購檔案結構區分如下：
 
+- xxx資料夾 (xxx 內購ID)
+- window layout 檔：xxx(內購ID) \ default \ window.json
+- png 檔： xxx(內購ID) \ image \ *.png
+- layout 檔：xxx(內購ID) \ default \ *.json
