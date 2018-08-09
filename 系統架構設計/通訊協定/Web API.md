@@ -85,7 +85,7 @@
     ```
     server=<本地伺服器ID>
     userid=<用戶第三方認證ID>
-    username=<用戶名稱>
+    name=<用戶名稱>
     device=<設備名稱>
     authcode=<授權碼>
     lang=zh-TW
@@ -94,7 +94,7 @@
     ```
     server=d2045940-5e38-11e8-bea1-77a4b0d356bf
     userid=AX1234567890
-    username=Sam Wang
+    name=Sam Wang
     device=iPhone 7
     authcode=1G78F95W8F
     lang=zh-TW
@@ -104,7 +104,7 @@
         {
             "server": "d2045940-5e38-11e8-bea1-77a4b0d356bf",
             "userid": "AX1234567890",
-            "username": "Sam Wang",
+            "name": "Sam Wang",
             "device": "iPhone 7",
             "authcode": "1G78F95W8F",
             "lang": "zh-TW"
@@ -112,7 +112,7 @@
         ```
     * Form Urlencoded: `Content-Type: application/x-www-form-urlencoded`
         ```
-        server=d2045940-5e38-11e8-bea1-77a4b0d356bf&userid=AX1234567890&username=Sam%20Wang&device=iPhone%207&authcode=1G78F95W8F&lang=zh-TW
+        server=d2045940-5e38-11e8-bea1-77a4b0d356bf&userid=AX1234567890&name=Sam%20Wang&device=iPhone%207&authcode=1G78F95W8F&lang=zh-TW
         ```
 1. 伺服器回覆一律為 JSON 格式 (`Content-Type: application/json; charset=utf-8`)\
     以下 JSON 格式中的註解僅為說明用，實際返回不包含這些註解:
@@ -144,7 +144,7 @@ URI = [`<local.web_api>`](#json)`/create_account`
     ```
     server=<本地伺服器ID>
     userid=<用戶第三方認證ID>
-    username=<用戶名稱>
+    name=<用戶名稱>
     device=<設備名稱>
     authcode=<授權碼>
     lang=zh-TW
@@ -215,7 +215,7 @@ URI = [`<local.web_api>`](#json)`/get_accounts`
         "status": 0,                     	// 0:成功
         "payload": {
             "userid": "<用戶第三方認證ID>",
-            "username": "<用戶名稱>",
+            "name": "<用戶名稱>",
             "devices": ["<設備名稱1>", "<設備名稱2>", ...]
         }
     }
