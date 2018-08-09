@@ -45,7 +45,30 @@
 ```
 
 
-### Document/專屬資料夾/temp
+### Document/專屬資料夾
+ - 裝置連線資訊 Account.txt , 存所有帳號資訊
+ 加密：Base64 >  AES  CTR 
+ 解密 :  AES  CTR > Base64
+
+ ```json
+ // 正確
+{
+    "server": "<伺服器ID>",
+    "status": 0,        				// 0:成功
+    "payload": {
+        "device": "<設備名稱>",
+        "loginid": "<登入帳號>",
+        "password": "<登入密碼>"
+    }
+}
+
+// 錯誤
+{
+    "server": "<伺服器ID>",
+    "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
+    "payload": "<錯誤訊息>"
+}
+ ```
 
  - 伺服器連線資訊 ServerInfo.txt（from server）
 加密：Base64 >  AES  CTR 

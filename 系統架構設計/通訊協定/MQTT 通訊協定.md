@@ -2,11 +2,60 @@
 
 ![各系統訊息轉換示意圖](https://cacoo.com/diagrams/XIbHkJ4p7f6aNVdg-CB5DB.png)
 
-## MQTT 登入
-
-請用 [`<WebAPI>/login`](./Web%20API.md#app-登錄取得取得-mqtt-通訊時所需的資訊) 取得取得 MQTT 通訊時所需的資訊。
+## Node JS 範例
 
 ```js
+const mqServer = {   // 來自 Web API: UDP
+    "web_api": "https://example.com/api",
+    "mqtt_host": "mqtt.example.com",
+    "mqtt_port": 1883,
+    "mqtt_ssl_port": 8883
+}
+const account = {   // 來自 Web API: create_account
+    "device": "Sony XZ2",
+    "loginid": "D2587",
+    "password": "xxxxxxk6KWNbc3FxWWyyyyyy"
+}
+const mqtt_info = { // 來自 Web API: login
+    "clientid": "1:A001-D2587(Sony XZ2)",
+    "topic": {
+        "pub": "to/",
+        "sub": [ "from/#", "to/A001/#", "to/D2587/#" ]
+    }
+}
+
+const client = require('mqtt').connect({
+    connectTimeout: 10000,          // 10000ms
+    clean: false,                   // not clean session
+    reconnectPeriod: 1000,          // 1000ms
+    keepalive: 60,                  // 60s
+    host: mqServer.mqtt_host,
+    port: mqServer.mqtt_ssl_port || mqServer.mqtt_port,
+    protocol: mqServer.mqtt_ssl_port ? 'tls' : 'tcp',
+    username: account.loginid,
+    password: account.password,
+    clientId: mqtt_info.clientid
+})
+
+client.subscribe(mqtt_info.topic.sub, {qos: 1}, (err, granted) => {
+    if (err) {
+        console.error('>>> Subscribe rror:', err)
+    } else {
+        console.log('>>> Subscribe granted:', granted)
+    }
+})
+
+client.on('connect', () => {
+    console.log('>>> Connected.')
+}).on('message', (topic, message, packet) => {
+    console.log(`>>> Message: [${topic}:${packet.qos}] ${message}`)
+    if (packet.dup) console.log('>>> Packet:', packet)
+})
+
+// 查詢所有模組組態
+const packet = { cmd: 1, version: 0 }
+client.publish(mqtt_info.topic.pub+'$YS/'+account.loginid,
+                JSON.stringify(packet), {qos: 1})
 ```
 
 ## 查詢伺服器下各模組/設備組態
@@ -85,9 +134,9 @@ App → 伺服器 | `to/$YS/<cid>`
     }
     ```
 
-    * `devices` 的 `icon_id`: 見 [UI定義＆設計規範-智慧家庭 設備項目定義](../../App/UI定義＆設計規範-智慧家庭.md#一-設備項目定義)。
+    * `devices` 的 `icon_id`: 見 [UI 定義 & 設計規範 - 智慧家庭: 設備項目定義](../../App/UI定義＆設計規範-智慧家庭.md#附錄一-設備項目定義)。
 
-    * `functions` 的 `icon_id`: 見 [UI定義＆設計規範-智慧家庭 功能項目定義](../../App/UI定義＆設計規範-智慧家庭.md#二-功能項目定義)。
+    * `functions` 的 `icon_id`: 見 [UI 定義 & 設計規範 - 智慧家庭: 功能項目定義](../../App/UI定義＆設計規範-智慧家庭.md#附錄二-功能項目定義)。
 
     * `functions` 的 `type`: 定義功能為可讀取(狀態)或可輸出(控制)
         |  值  |     說明         |

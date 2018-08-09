@@ -453,7 +453,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/login`
             "clientid": "<client_id>",
             "topic": {
                 "pub": "to/",
-                "sub": ["from/#", "to/xxxx", "to/yyyy"]
+                "sub": ["from/#", "to/<uid>", "to/<cid>"]
             }
         }
     }
