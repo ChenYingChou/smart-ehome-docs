@@ -81,7 +81,7 @@
 
 1. 為了安全起見 RESTful 一律採用 POST 方法，網站儘可能使用 SSL 加密，以避免帳戶資料的外洩。
 1. `POST` 資料內容可選擇下列兩種表示法，請於 HTTP 標題指定 `Content-Type`:\
-    以 [App 設備第一次要先向本地伺服器註冊 `create_account`](#app-設備第一次要先向本地伺服器註冊) 範例說明:
+    以 [App 設備第一次要先向本地伺服器註冊 `create_device`](#app-設備第一次要先向本地伺服器註冊) 範例說明:
     ```
     server=<本地伺服器ID>
     userid=<用戶第三方認證ID>
@@ -135,7 +135,7 @@
 
 ## App 設備第一次要先向本地伺服器註冊
 
-URI = [`<local.web_api>`](#json)`/create_account`
+URI = [`<local.web_api>`](#json)`/create_device`
 
 1. App 送出 `POST` 資料如下:
 
@@ -185,7 +185,7 @@ URI = [`<local.web_api>`](#json)`/create_account`
 
 ## 用戶取得已註冊設備
 
-URI = [`<local.web_api>`](#json)`/get_accounts`
+URI = [`<local.web_api>`](#json)`/get_devices`
 
 1. App 送出 `POST` 資料如下:
 
@@ -231,7 +231,7 @@ URI = [`<local.web_api>`](#json)`/get_accounts`
 
 ## 用戶刪除已註冊設備
 
-URI = [`<local.web_api>`](#json)`/delete_account`
+URI = [`<local.web_api>`](#json)`/delete_device`
 
 1. App 送出 `POST` 資料如下:
 
@@ -244,7 +244,7 @@ URI = [`<local.web_api>`](#json)`/delete_account`
 
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
     * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。通常就是 App 安裝所在的設備，每次註冊後必須將帳號、密碼儲存起來。
-    * `target_device`: 驗證用戶合法性後會將指定的設備刪除之，請注意這裡的是指要刪除的設備，不是帳號 `loginid` 關聯的設備，小心不要誤刪除自己本身。若未指定 `target_device` 則視同刪除本身。
+    * `target_device`: 驗證用戶合法性後會將指定的設備刪除之，請注意這裡的是指要刪除的設備，不是帳號 `loginid` 關聯的設備，請不要誤刪除自己本身。若未指定 `target_device` 則視同刪除本身。
     * 若不是系統管理者時，當用戶所有註冊設備都已清空時，本系統會自動移除此用戶資訊。若是系統管理者名下已無註冊設備，在[重新註冊一個新的設備](#app-設備第一次要先向本地伺服器註冊)時並不需要授權碼驗證。
 
 1. 網頁伺服器回覆:
@@ -301,7 +301,7 @@ URI = [`<local.web_api>`](#json)`/get_authcode`
 
 URI = [`<local.web_api>`](#json)`/get_reg_users`
 
-1. App (系統管理者) 送出 `POST` 資料如下:
+1. App 送出 `POST` 資料如下:
 
     ```
     server=<本地伺服器ID>
@@ -342,14 +342,15 @@ URI = [`<local.web_api>`](#json)`/get_reg_users`
     }
     ```
 
-    * 確認系統管理者身份無誤後，返回的 `<payload>` 為系統現行用戶名單 (陣列)。其中欄位 `is_admin` 表示該用戶是否為系統管理者。
+    * 若為系統管理者，返回的 `<payload>` 為系統現行用戶名單 (陣列)。其中欄位 `is_admin` 表示該用戶是否為系統管理者。
+    * 非系統管理者只會返回自己的資料 (陣列中只有一筆)。
 
 
-## 變更系統管理者身份
+## 變更用戶名稱或系統管理者身份
 
 URI = [`<local.web_api>`](#json)`/update_reg_user`
 
-1. App (系統管理者) 送出 `POST` 資料如下:
+1. App 送出 `POST` 資料如下:
 
     ```
     server=<本地伺服器ID>
@@ -364,6 +365,8 @@ URI = [`<local.web_api>`](#json)`/update_reg_user`
     * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。
     * `target_userid`、`is_admin`: 設定用戶 `target_userid` 管理者身份 (`is_admin`)。
     * `target_name`: 不為空白時才更新用戶名稱，此欄位可省略。
+    * 僅系統管理者才可變更其他用戶 `is_admin` 身份。
+    * 非系統管理者只能更改自己的用戶名稱。
 
 1. 網頁伺服器回覆:
 
@@ -459,7 +462,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/login`
     }
     ```
 
-    * `<client_id>`、`topic.pub`、`topic.sub` 於 MQTT 連線登入時使用。
+    * `<client_id>`、`topic.pub`、`topic.sub` 於 MQTT 連線登入時使用，參見 [MQTT 通訊協定 - Node JS 範例](./MQTT%20通訊協定.md#node-js-範例)。
 
 
 ## App 取得取得 MQTT 系統中目前組態資訊
@@ -532,7 +535,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_statusreq`
     1. 中國大陸使用簡體中文語系代碼為 `zh-CN`，可簡寫為 `cn`。
 * Web API 可於下列位置指定返回錯誤訊息的語系: (依優先順序高到低)
     1. 在 Post 中指定: `lang=zh-TW`。
-    1. 在 URI 查詢字串 (query string) 指定，如: `https://hostname/api/create_account?lang=zh-TW`。
+    1. 在 URI 查詢字串 (query string) 指定，如: `https://hostname/api/create_device?lang=zh-TW`。
     1. HTTP 標題中的 "Accept-Language" 指定的順序。通常瀏覽器會有預設語系，例如 Google Chrome 可能帶的如下:\
     `Accept-Language: zh-TW,zh;q=0.9,zh-CN;q=0.8,en-US;q=0.7,en;q=0.6` \
     表示語系的順序為: `zh-TW` → `zh` → `zh-CN` → `en-US` → `en`。

@@ -11,7 +11,7 @@ const mqServer = {   // 來自 Web API: UDP
     "mqtt_port": 1883,
     "mqtt_ssl_port": 8883
 }
-const account = {   // 來自 Web API: create_account
+const account = {   // 來自 Web API: create_device
     "device": "Sony XZ2",
     "loginid": "D2587",
     "password": "xxxxxxk6KWNbc3FxWWyyyyyy"
@@ -507,8 +507,8 @@ App → 通訊模組 | `to/<mid>`
     {
         "cmd": 130,
         "status": 0,
+        "?_id": "**ID**",
         "payload": {
-            "?_id": "**ID**",
             "timestamp": _timestamp_    // 發送端送來的時戳原封不動送回
         }
     }
@@ -528,7 +528,7 @@ App → 通訊模組 | `to/<mid>`
     伺服器 → 通訊模組 | `from/$YS`
     伺服器 → App | `from/$YS`
 
-    ```json
+    ```js
     {
         "cmd": 31,
         "message": "**系統廣播訊息**"
