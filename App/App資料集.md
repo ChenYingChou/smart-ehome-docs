@@ -46,28 +46,26 @@
 
 
 ### Document/專屬資料夾
- - 裝置連線資訊 Account.txt , 存所有帳號資訊
+ - 裝置連線資訊 Account.txt,存所有帳號資訊
  加密：Base64 >  AES  CTR 
  解密 :  AES  CTR > Base64
 
  ```json
  // 正確
 {
-    "server": "<伺服器ID>",
-    "status": 0,        				// 0:成功
-    "payload": {
-        "device": "<設備名稱>",
-        "loginid": "<登入帳號>",
-        "password": "<登入密碼>"
-    }
+	"xxx-xxx-xxx-xxx-xxx": {		// <伺服器ID>
+		"xxx-xxx":{					// <設備名稱>
+			"uid": "<登入帳號>",
+			"pwd": "<登入密碼>",
+			"clientid": "<client_id>",
+			"topic": {
+				"pub": "to/",
+				"sub": ["from/#", "to/<uid>", "to/<cid>"]
+			}
+		}
+	}
 }
 
-// 錯誤
-{
-    "server": "<伺服器ID>",
-    "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
-    "payload": "<錯誤訊息>"
-}
  ```
 
  - 伺服器連線資訊 ServerInfo.txt（from server）
@@ -177,9 +175,129 @@
 ```	  
 
 # Wizard
-與內購相關頁面組態檔，整體內購檔案結構區分如下：
+與內購相關頁面組態檔，整體內購檔案結構區分如下：
 
-- xxx資料夾 (xxx 內購ID)
+- xxx資料夾 (xxx 內購ID)
+- icon 檔： xxx(內購ID) \ image \ icon \ *.png (< iconID >.png)
+- 一般 png 檔： xxx(內購ID) \ image \ *.png
 - window layout 檔：xxx(內購ID) \ default \ window.json
-- png 檔： xxx(內購ID) \ image \ *.png
+
 - layout 檔：xxx(內購ID) \ default \ *.json
+
+## 一般頁面
+ > 視窗：每個視窗有ID,該視窗下有功能鍵群,當按鍵高度超出視窗高度，表示為垂直卷軸方式，捲軸彩視窗倍數增加（垂直捲軸為高度倍數、水瓶捲軸為寬度倍數）
+
+ > 視窗切換，按鍵換頁 ： 儲存於Action 屬性（一般為其屬性值＝ “模組｜設備｜功能” < palyload > ）
+### APP 特定用定義如下：
+- 換頁：“APP|GO|< pageID >"
+- 本頁視窗切換 ： “APP|Pop|<視窗ID>”
+
+```	json
+{
+	"x":0,
+	"y":0,
+	"w":0,
+	"h":0,
+	"picture":"image\\< deviceID >\\bg.png",
+	"functions":{
+		"< funID >":{
+			"x":0,
+			"y":0,
+			"w":0,
+			"h":0,
+			"upimage":"image\\< deviceID >\\< funID >_up.png",
+			"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+		},
+		"< funID >":{
+			"x":0,
+			"y":0,
+			"w":0,
+			"h":0,
+			"upimage":"image\\< deviceID >\\< funID >_up.png",
+			"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+		}
+	}
+}
+
+```	
+
+含 WINDOW 頁面
+```	json
+{
+	"x":0,
+	"y":0,
+	"w":0,
+	"h":0,
+	"picture":"image\\< deviceID >\\bg.png",
+	"window":{
+		"w000< windowID >":{
+			"x":0,
+			"y":0,
+			"w":0,
+			"h":0,
+			"picture":"",
+			"functions":{
+				"< funID >":{
+					"x":0,
+					"y":0,
+					"w":0,
+					"h":0,
+					"upimage":"image\\< deviceID >\\< funID >_up.png",
+					"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+				},
+				"< funID >":{
+					"x":0,
+					"y":0,
+					"w":0,
+					"h":0,
+					"upimage":"image\\< deviceID >\\< funID >_up.png",
+					"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+				}
+			}
+		},
+		"w001< windowID >":{
+			"x":0,
+			"y":0,
+			"w":0,
+			"h":0,
+			"picture":"",
+			"functions":{
+				"< funID >":{
+					"x":0,
+					"y":0,
+					"w":0,
+					"h":0,
+					"upimage":"image\\< deviceID >\\< funID >_up.png",
+					"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+				},
+				"< funID >":{
+					"x":0,
+					"y":0,
+					"w":0,
+					"h":0,
+					"upimage":"image\\< deviceID >\\< funID >_up.png",
+					"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+				}
+			}
+		}		
+	},
+	"functions":{
+		"< funID >":{
+			"x":0,
+			"y":0,
+			"w":0,
+			"h":0,
+			"upimage":"image\\< deviceID >\\< funID >_up.png",
+			"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+			},
+		"< funID >":{
+			"x":0,
+			"y":0,
+			"w":0,
+			"h":0,
+			"upimage":"image\\< deviceID >\\< funID >_up.png",
+			"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+		}
+	}
+}
+```
