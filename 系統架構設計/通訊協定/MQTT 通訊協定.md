@@ -75,7 +75,7 @@ App → 伺服器 | `to/$YS/<cid>`
     ```
 
     * MQTT 主題中的 `<cid>` 為客端設備登入的帳號 `__loginid__`。
-    * `_version_` 為版本數值，若伺服器版本號碼大於請求方的值，則會送出該伺服器所有模組組態。現存的版本號號從 1 計起，每次組態有變更則加 1，因此請求方的 `_version_` 若為零則表示要求伺服器重送出所有模組組態。
+    * `_version_` 為版本數值，若伺服器版本號碼大於請求方的值，則會送出該伺服器所有模組組態。現存的版本號號從 1 計起，每次組態有變更會加 1，因此請求方的 `_version_` 為零則表示要求伺服器重送出所有模組組態。
 
 1. App 請求逐一比對指定伺服器/模組/設備版本之後的組態:
 
@@ -85,6 +85,9 @@ App → 伺服器 | `to/$YS/<cid>`
         "payload": "伺服器ID|模組ID|設備ID|_version_" // 或陣列
     }
     ```
+
+    * `伺服器ID` 或以下 `s_id` 欄位內容 `__伺服器ID__`: 伺服器短代碼 (非 UDP 取得的本地伺服器ID)，在雲端連線時給定，本地連線時可給空值表示本地主機。
+    * 在本地主機尚未連線註冊到雲端系統前 `s_id` 欄位內容均為空值。
 
 
 ## 伺服器回應各模組/設備組態
@@ -309,6 +312,197 @@ App → 通訊模組 | `to/<mid>`
         "payload": []
     }
     ```
+
+
+## 查詢系統模組情境/智慧控制/排程各功能內容
+
+方向 | MQTT 主題
+:---:|----
+App → 系統模組 | `to/$00/<cid>`
+
+App 請求系統模組各項目功能內容結構:
+
+```js
+{
+    "cmd": 5,
+    "payload": "伺服器ID|模組ID|設備ID|_version_" // 或陣列
+}
+```
+
+* MQTT 主題中的 `<cid>` 為客端設備登入的帳號 `__loginid__`。
+* `伺服器ID`: 伺服器短代碼，非雲端連線時可給空白。
+* `模組ID`: 此處為 `$00`，`$` 加上兩個數字零。同 MQTT 主題的第二個欄位值。
+* `設備ID`: 回應內容結構會根據各項目而有所不同
+    設備ID | 項目名稱
+    :---:|----
+    SCENES | 情境
+    WISDOMS | 智慧控制
+    SCHEDULES | 排程
+* `_version_` 為版本數值，若伺服器版本號碼大於請求方的值，則會送出該伺服器所有模組組態。現存的版本號號從 1 計起，每次組態變更會加 1，因此請求方的 `_version_` 為零則表示要求伺服器重送出指定模組/設備的內容結構。
+
+
+## 系統模組回應查詢情境/智慧控制/排程各功能內容
+
+方向 | MQTT 主題
+:---:|----
+系統模組 → App | `to/<cid>`
+
+1. `SCENES` 情境:
+
+    ```js
+    {
+        "cmd": 105,
+        "status": 0,
+        "payload": {
+            "id": "SCENES",
+            "version": _version_,
+            "functions": {
+                "情境ID": {
+                    "name": "**情境名稱**",
+                    "mode": 1,              // 重疊執行處理模式
+                    "actions": [            // <action-list>
+                        // ...
+                    ]
+                },
+                // 其他情境...
+            }
+        }
+    }
+    ```
+
+    * `mode`: 重疊執行處理模式 (同一情境之前的還在執行中)
+        值 | 說明
+        :---:|---
+        0 | 取消都不執行
+        1 | 舊的取消，新的開始執行
+        2 | 舊的繼續，新的不予執行
+        3 | 舊的繼續，新的開始執行
+    * `actions` 欄位內容為 `<action-list>`，用下列 ABNF 語法表示之:
+        ```bnf
+        action-list = "[" *1concurrent *( action / action-list ) "]"
+        concurrent  = "C"
+
+        ; action = JSON 物件 { "id": item , "delay0": seconds }
+        ; item = "模組ID|設備ID|功能ID|**控制狀態值**"
+        ; seconds = 送出控制命令(item)前延遲秒數 (精確度 0.1 秒)
+
+        ; 註: action-list 首個值為 "C" 表示同時(Concurrent)執行各個動作，否則為循序執行。
+        ;     當所有動作結束後才算本 action-list 結束。
+        ```
+
+    範例:
+    ```js
+    {
+        "cmd": 105,
+        "status": 0,
+        "payload": {
+            "id": "SCENES",
+            "version": 2,
+            "functions": {
+                "RDLightsOn": {
+                    "name": "研發燈光開",
+                    "mode": 1,
+                    "actions": [ "C",
+                        { "id": "dsc|amLight-1|PD002|1", "delay0": 0 },
+                        { "id": "dsc|amLight-1|PD003|1", "delay0": 0 },
+                        { "id": "", "delay0": 0.5 }
+                    ]
+                },
+                "RDLightsOff": {
+                    "name": "研發燈光關",
+                    "mode": 1,
+                    "actions": [
+                        { "id": "dsc|amDimmer-0|001|0,50", "delay0": 0 },
+                        { "id": "dsc|amLight-1|PD002|0", "delay0": 0.5 },
+                        { "id": "dsc|amLight-1|PD003|0", "delay0": 0.5 }
+                    ]
+                }
+            }
+        }
+    }
+    ```
+
+1. 若無新的版本則返回 `functions` 為 `null`:
+    ```js
+    {
+        "cmd": 105,
+        "status": 0,
+        "payload": {
+            "id": "SCENES",
+            "version": _version_,
+            "functions": null
+        }
+    }
+    ```
+
+
+## 異動系統模組情境/智慧控制/排程各功能內容
+
+方向 | MQTT 主題
+:---:|----
+App → 系統模組 | `to/$00/<cid>`
+
+App 請求系統模組各項目功能內容結構:
+
+```js
+{
+    "cmd": 6,
+    "id": "_id_",
+    "action": "_action_",
+    "payload": {
+        // ... 視 id 值而不同
+    }
+}
+```
+
+* `_id_` = `SCENES`(情境)、`WISDOMS`(智慧控制)、`SCHEDULES`(排程)。
+* `_action_` = `add`(增加)、`delete`(刪除)、`update`(更改)、`replace`(完全取代)。
+* `payload` 內容因 `SCENES`(情境)、`WISDOMS`(智慧控制)、`SCHEDULES`(排程) 而不同，見以下說明。
+
+1. 情境: `_id_` = `SCENES`
+
+    `_action_` = `add`(增加)、`update`(更改)、`replace`(完全取代):
+    ```js
+    "payload": {
+        "情境ID": {
+            "name": "**情境名稱**",
+            "mode": 1,              // 重疊執行處理模式
+            "actions": [            // <action-list>
+                // ...
+            ]
+        },
+        // 其他情境...
+    }
+    ```
+
+    `_action_` = `delete`(刪除):
+    ```js
+    "payload": [ "情境ID", ... ]
+    ```
+
+
+## 系統模組回應異動情境/智慧控制/排程各功能內容
+
+方向 | MQTT 主題
+:---:|----
+系統模組 → App | `to/<cid>`
+
+App 請求系統模組各項目功能內容結構:
+
+```js
+{
+    "cmd": 106,
+    "status": 0,
+    "payload": {
+        "id": "_id_",               // SCENES, WISDOMS, SCHEDULES
+        "action": "_action_",       // add, delete, update, replace
+        "message": "**msg**"        // 當 "status" 不為零時表示錯誤訊息
+    }
+}
+```
+
+* `_id_` 及 `_action_` 是原異動封包帶入的欄位值。
+* `**msg**` 可能為多筆錯誤訊息，會以斷行 (JSON 字串 "`\n`") 分隔每筆錯誤原因。
 
 
 ## 通訊模組註冊/異動/移除
