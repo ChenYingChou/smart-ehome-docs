@@ -325,7 +325,7 @@ App 請求系統模組各項目功能內容結構:
 ```js
 {
     "cmd": 5,
-    "payload": "伺服器ID|模組ID|設備ID|_version_" // 或陣列
+    "payload": "伺服器ID|模組ID|設備ID|_version_"
 }
 ```
 
