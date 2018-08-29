@@ -184,13 +184,22 @@
 
 - layout 檔：xxx(內購ID) \ default \ *.json
 
-## 一般頁面
- > 視窗：每個視窗有ID,該視窗下有功能鍵群,當按鍵高度超出視窗高度，表示為垂直卷軸方式，捲軸彩視窗倍數增加（垂直捲軸為高度倍數、水瓶捲軸為寬度倍數）
+## 透過精靈轉化後APP頁面檔
+> 一個檔案就是一頁(父視窗),父視窗含有 Ｎ個按鍵 + N個子視窗（window 節點下以ID為屬性）; 子視窗含有 Ｎ個按鍵。
 
- > 視窗切換，按鍵換頁 ： 儲存於Action 屬性（一般為其屬性值＝ “模組｜設備｜功能” < palyload > ）
-### APP 特定用定義如下：
+     父視窗（windows,functions）  	> N個按鍵
+             			> N個子視窗 > N個按鍵
+     注意：
+	 (1)所有子視窗不得彼此重疊,並皆位於父視窗 
+	 (2)所有子視窗應建立於子視窗群內(windows) 
+	 (3)按鍵群內(functions),不得含window
+
+> 視窗：每個視窗有ID,該視窗下有功能鍵群,當按鍵高度超出視窗高度，表示為垂直卷軸方式，捲軸彩視窗倍數增加（垂直捲軸為高度倍數、水瓶捲軸為寬度倍數）
+
+> 視窗切換，按鍵換頁 ： 儲存於Action 屬性（一般為其屬性值＝ “模組｜設備｜功能” < palyload > ）
+### APP 特定用定義如下(大寫表示))：
 - 換頁：“APP|GO|< pageID >"
-- 本頁視窗切換 ： “APP|Pop|<視窗ID>”
+- 本頁視窗切換 ： “APP|POP|<視窗ID>”
 
 ```	json
 {
@@ -206,7 +215,8 @@
 			"w":0,
 			"h":0,
 			"upimage":"image\\< deviceID >\\< funID >_up.png",
-			"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+			"dnimage":"image\\< deviceID >\\< funID >_dn.png",
+			"action":"xxx|xxx|xxx"
 		},
 		"< funID >":{
 			"x":0,
@@ -214,7 +224,8 @@
 			"w":0,
 			"h":0,
 			"upimage":"image\\< deviceID >\\< funID >_up.png",
-			"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+			"dnimage":"image\\< deviceID >\\< funID >_dn.png",
+			"action":"xxx|xxx|xxx"
 		}
 	}
 }
@@ -229,7 +240,7 @@
 	"w":0,
 	"h":0,
 	"picture":"image\\< deviceID >\\bg.png",
-	"window":{
+	"windows":{
 		"w000< windowID >":{
 			"x":0,
 			"y":0,
@@ -243,7 +254,8 @@
 					"w":0,
 					"h":0,
 					"upimage":"image\\< deviceID >\\< funID >_up.png",
-					"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+					"dnimage":"image\\< deviceID >\\< funID >_dn.png",
+					"action":"xxx|xxx|xxx"
 				},
 				"< funID >":{
 					"x":0,
@@ -251,7 +263,8 @@
 					"w":0,
 					"h":0,
 					"upimage":"image\\< deviceID >\\< funID >_up.png",
-					"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+					"dnimage":"image\\< deviceID >\\< funID >_dn.png",
+					"action":"xxx|xxx|xxx"
 				}
 			}
 		},
@@ -268,7 +281,8 @@
 					"w":0,
 					"h":0,
 					"upimage":"image\\< deviceID >\\< funID >_up.png",
-					"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+					"dnimage":"image\\< deviceID >\\< funID >_dn.png",
+					"action":"xxx|xxx|xxx"
 				},
 				"< funID >":{
 					"x":0,
@@ -276,7 +290,8 @@
 					"w":0,
 					"h":0,
 					"upimage":"image\\< deviceID >\\< funID >_up.png",
-					"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+					"dnimage":"image\\< deviceID >\\< funID >_dn.png",
+					"action":"xxx|xxx|xxx"
 				}
 			}
 		}		
@@ -288,7 +303,8 @@
 			"w":0,
 			"h":0,
 			"upimage":"image\\< deviceID >\\< funID >_up.png",
-			"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+			"dnimage":"image\\< deviceID >\\< funID >_dn.png",
+			"action":"xxx|xxx|xxx"
 			},
 		"< funID >":{
 			"x":0,
@@ -296,7 +312,8 @@
 			"w":0,
 			"h":0,
 			"upimage":"image\\< deviceID >\\< funID >_up.png",
-			"dnimage":"image\\< deviceID >\\< funID >_dn.png"
+			"dnimage":"image\\< deviceID >\\< funID >_dn.png",
+			"action":"xxx|xxx|xxx"
 		}
 	}
 }
