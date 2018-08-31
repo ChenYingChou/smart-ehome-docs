@@ -617,15 +617,12 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
     {
         "server": "<伺服器ID>",
         "status": 0,                // 0:成功, 非零:錯誤
-        "payload": {
-            "id": "_id_",               // SCENES, WISDOMS, SCHEDULES
-            "action": "_action_",       // add, delete, update, replace
-            "message": "**msg**"        // 當 "status" 不為零時表示錯誤訊息
+        "payload": "**msg**"
         }
     }
     ```
 
-    * 成功時 `payload` 內容詳見 [MQTT 通訊協定 - 系統模組回應異動情境/智慧控制/排程各功能內容](./MQTT%20通訊協定.md#系統模組回應異動情境智慧控制排程各功能內容)。
+    * `payload` 內容詳見 [MQTT 通訊協定 - 系統模組回應異動情境/智慧控制/排程各功能內容](./MQTT%20通訊協定.md#系統模組回應異動情境智慧控制排程各功能內容)。
 
 
 ## 訊息語系 (lang)
