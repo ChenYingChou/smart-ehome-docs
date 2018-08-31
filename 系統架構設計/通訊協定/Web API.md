@@ -618,7 +618,6 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
         "server": "<伺服器ID>",
         "status": 0,                // 0:成功, 非零:錯誤
         "payload": "**msg**"
-        }
     }
     ```
 
