@@ -1,4 +1,4 @@
-# Web API (RESTful)
+# Web API
 
 ## App 尋找本地伺服器
 
@@ -77,9 +77,9 @@
 1. 本地伺服器連線: `<WebAPI>` = [`<local.web_api>`](#json)。
 
 
-## RESTful 一律採用 POST 方法
+## Web API 一律採用 POST 方法
 
-1. 為了安全起見 RESTful 一律採用 POST 方法，網站儘可能使用 SSL 加密，以避免帳戶資料的外洩。
+1. 為了安全起見 Web API 一律採用 POST 方法，若網站有對外開放時請使用 SSL 加密，避免帳戶資料的外洩。
 1. `POST` 資料內容可選擇下列兩種表示法，請於 HTTP 標題指定 `Content-Type`:\
     以 [App 設備第一次要先向本地伺服器註冊 `create_device`](#app-設備第一次要先向本地伺服器註冊) 範例說明:
     ```
