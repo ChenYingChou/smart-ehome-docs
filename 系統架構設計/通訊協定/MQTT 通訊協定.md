@@ -362,6 +362,19 @@ App 請求系統模組各項目功能內容結構:
 :---:|----
 系統模組 → App | `to/<cid>`
 
+1. 若無新的版本則返回 `functions` 為 `null`:
+    ```js
+    {
+        "cmd": 105,
+        "status": 0,
+        "payload": {
+            "id": "SCENES",         // SCENES, WISDOMS, SCHEDULES
+            "version": _version_,   // 最後的版號
+            "functions": null
+        }
+    }
+    ```
+
 1. `SCENES` 情境:
 
     ```js
@@ -397,13 +410,16 @@ App 請求系統模組各項目功能內容結構:
         action-list = "[" *1concurrent *( action / action-list ) "]"
         concurrent  = "C"
 
-        ; action = JSON 物件 { "id": item , "delay0": seconds }
-        ; item = "模組ID|設備ID|功能ID|**控制狀態值**"
-        ; seconds = 送出控制命令(item)前延遲秒數 (精確度 0.1 秒)
-
-        ; 註: action-list 首個值為 "C" 表示同時(Concurrent)執行各個動作，否則為循序執行。
+        ; action 是 JSON 物件，見下一項說明。
+        ;
+        ; 註: action-list 第一個值為 "C" 表示同時(Concurrent)執行各個動作，否則為循序執行。
         ;     當所有動作結束後才算本 action-list 結束。
         ```
+    * `<action>` JSON 物件:\
+        ```{ "id": "模組ID|設備ID|功能ID|**控制狀態值**" , "delay0": seconds }```
+        + `id` 為要控制的內容。
+        + `delay0` 為送出控制內容前延遲秒數 (精確度 0.1 秒)，若省略此欄位則為零 (不延遲)。
+    * 當情境觸發時會先回應情境狀態為 `1`，當情境所有動作結束後會回應狀態為 `0`。因此若整個情境執行期間太快，呈現的執行中狀態會很短暫，此時可以在最後加上一個空動作 (`id` 為空值) 的適當延遲。
 
     範例:
     ```js
@@ -419,17 +435,19 @@ App 請求系統模組各項目功能內容結構:
                     "mode": 1,
                     "actions": [ "C",
                         { "id": "dsc|amLight-1|PD002|1", "delay0": 0 },
-                        { "id": "dsc|amLight-1|PD003|1", "delay0": 0 },
-                        { "id": "", "delay0": 0.5 }
+                        { "id": "dsc|amLight-1|PD003|1", "delay0": 0.5 },
+                        { "id": "", "delay0": 1 }
                     ]
                 },
                 "RDLightsOff": {
                     "name": "研發燈光關",
                     "mode": 1,
-                    "actions": [
-                        { "id": "dsc|amDimmer-0|001|0,50", "delay0": 0 },
-                        { "id": "dsc|amLight-1|PD002|0", "delay0": 0.5 },
-                        { "id": "dsc|amLight-1|PD003|0", "delay0": 0.5 }
+                    "actions": [ "C",
+                        { "id": "dsc|amDimmer-0|001|0,50", "delay0": 0.5 },
+                        [
+                            { "id": "dsc|amLight-1|PD002|0", "delay0": 1 },
+                            { "id": "dsc|amLight-1|PD003|0", "delay0": 1 }
+                        ]
                     ]
                 }
             }
@@ -437,15 +455,75 @@ App 請求系統模組各項目功能內容結構:
     }
     ```
 
-1. 若無新的版本則返回 `functions` 為 `null`:
+1. `SCHEDULES` 排程:
+
     ```js
     {
         "cmd": 105,
         "status": 0,
         "payload": {
-            "id": "SCENES",
+            "id": "SCHEDULES",
             "version": _version_,
-            "functions": null
+            "functions": {
+                "排程ID": {
+                    "active": 1,            // 是否啟用
+                    "name": "**排程名稱**",
+                    "timer": {
+                        "start_time": "",   // 起始時間("YYYY-MM-DD HH:MM"): 時分省略表示該日開始
+                        "end_time": "",     // 結束時間("YYYY-MM-DD HH:MM"): 時分省略表示該日結束
+                        "holidays": 0,      // 1:例假日執行, 2:非例假日執行, 其他值:不理會
+                        "weeks": [],        // 0~6: 週日~週六
+                        "months": [],       // 1~12 月
+                        "days": [],         // 1~31 日, 負值表本月倒數天數之日
+                        "hours": [],        // 0~23 時
+                        "minutes": []       // 0~59 分, 至少要指定一個值
+                    },
+                    "actions": [            // <action-list>
+                        // ...
+                    ]
+                },
+                // 其他排程...
+            }
+        }
+    }
+    ```
+
+    * `active` 為排程的狀態值，`0` 表示停用，`1` 表示啟用。
+    * `start_time`: 排程的開始啟用時間 (`YYYY-MM-DD HH:MM`)，空值表示不限制。省略時分則表示該日開始時間。
+    * `end_time`: 排程的最後有效時間 (`YYYY-MM-DD HH:MM`)，空值表示不限制。省略時分則表示該日結束時間。
+    * `holidays`: `1` 表示例假日執行, `2` 表示非例假日執行, `0` (或其他值) 不檢查例假日。必須有對外網路連線從雲端系統取得例假日資訊。
+    * `weeks`: 陣列內容表示 0~6 (週日~週六) 要執行。可為空值，表示不檢查。
+    * `months`: 陣列內容表示 1~12 (月份) 要執行。可為空值，表示不檢查。
+    * `days`: 陣列內容表示 1~31 (日, 負值表本月倒數天數之日) 要執行。可為空值，表示不檢查。
+    * `hours`: 陣列內容表示 0~23 (時) 要執行。可為空值，表示不檢查。
+    * `minutes`: 陣列內容表示 0~59 (分) 要執行。至少要指定一個值，否則視為零分整。
+    * `actions` 欄位參照前項情境 (SCENES) 說明。
+
+    範例:
+    ```js
+    {
+        "cmd": 105,
+        "status": 0,
+        "payload": {
+            "id": "SCHEDULES",
+            "version": 1,
+            "functions": {
+                "WorkingDays": {
+                    "active": 1,
+                    "name": "工作日",
+                    "timer": {
+                        "holidays": 2,          // 2:非例假日執行
+                        "weeks": [1,2,3,4,5],   // 1~5: 工作日
+                        "hours": [8],           // 8 點
+                        "minutes": [50]         // 50 分
+                    },
+                    "actions": [ "C",
+                        { "id": "$00|SCENES|RDLightsOn|1", "delay0": 0 },
+                        { "id": "$00|SCENES|EDLightsOn|1", "delay0": 0 },
+                        { "id": "$00|SCENES|PlayMusic|1", "delay0": 300 }
+                    ]
+                }
+            }
         }
     }
     ```

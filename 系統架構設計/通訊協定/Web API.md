@@ -611,6 +611,37 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
         "payload": [ "情境ID", ... ]
         ```
 
+    2. 排程: `_id_` = `SCHEDULES`
+
+        `_action_` = `add`(增加)、`update`(更改)、`replace`(完全取代):
+        ```js
+        "payload": {
+            "排程ID": {
+                "active": 1,            // 是否啟用
+                "name": "**排程名稱**",
+                "timer": {
+                    "start_time": "",   // 起始時間("YYYY-MM-DD HH:MM"): 時分省略表示該日開始
+                    "end_time": "",     // 結束時間("YYYY-MM-DD HH:MM"): 時分省略表示該日結束
+                    "holidays": 0,      // 1:例假日執行, 2:非例假日執行, 其他值:不理會
+                    "weeks": [],        // 0~6: 週日~週六
+                    "months": [],       // 1~12 月
+                    "days": [],         // 1~31 日, 負值表本月倒數天數之日
+                    "hours": [],        // 0~23 時
+                    "minutes": []       // 0~59 分, 至少要指定一個值
+                },
+                "actions": [            // <action-list>
+                    // ...
+                ]
+            },
+            // 其他排程...
+        }
+        ```
+
+        `_action_` = `delete`(刪除):
+        ```js
+        "payload": [ "排程ID", ... ]
+        ```
+
 1. 網頁伺服器回覆:
 
     ```js
