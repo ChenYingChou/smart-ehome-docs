@@ -620,9 +620,9 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
                 "active": 1,            // 是否啟用
                 "name": "**排程名稱**",
                 "timer": {
-                    "start_time": "",   // 起始時間("YYYY-MM-DD HH:MM"): 時分省略表示該日開始
-                    "end_time": "",     // 結束時間("YYYY-MM-DD HH:MM"): 時分省略表示該日結束
-                    "holidays": 0,      // 1:例假日執行, 2:非例假日執行, 其他值:不理會
+                    "start_time": "",   // 起始時間("YYYY-MM-DD HH:MM:SS.ZZZ"): 時分秒可省略
+                    "end_time": "",     // 結束時間點("YYYY-MM-DD HH:MM:SS.ZZZ")
+                    "holiday": 0,       // 1:例假日執行, 2:工作日執行, 其他值:不理會
                     "weeks": [],        // 0~6: 週日~週六
                     "months": [],       // 1~12 月
                     "days": [],         // 1~31 日, 負值表本月倒數天數之日
