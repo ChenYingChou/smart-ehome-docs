@@ -39,7 +39,7 @@ const client = require('mqtt').connect({
 
 client.subscribe(mqtt_info.topic.sub, {qos: 1}, (err, granted) => {
     if (err) {
-        console.error('>>> Subscribe rror:', err)
+        console.error('>>> Subscribe error:', err)
     } else {
         console.log('>>> Subscribe granted:', granted)
     }
