@@ -437,7 +437,7 @@ App 請求系統模組各項目功能內容結構:
                     "name": "研發燈光關",
                     "mode": 1,
                     "actions": [ "C",
-                        { "id": "dsc|amDimmer-0|001|0,50", "delay0": 0.5 },
+                        { "id": "dsc|amDimmer-0|001|0,5.0", "delay0": 0.5 },
                         [
                             { "id": "dsc|amLight-1|PD002|0", "delay0": 1 },
                             { "id": "dsc|amLight-1|PD003|0", "delay0": 1 }
