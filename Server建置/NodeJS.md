@@ -5,7 +5,7 @@ NodeJS 建置
 
 #### 執行安裝： 可以先到 [這裡檢查最新版本](https://github.com/nodesource/distributions/tree/master/deb)
 ```sh
-curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash –
+curl -sL https://rpm.nodesource.com/setup_10.x | sudo bash -
 sudo apt-get install nodejs
 ```
 
