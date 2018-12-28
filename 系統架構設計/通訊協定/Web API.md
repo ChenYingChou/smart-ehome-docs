@@ -525,11 +525,11 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_statusreq`
     * 成功時 `payload` 內容詳見 [MQTT 通訊協定 - 回應指定時間點後各模組/設備/功能最新狀態](./MQTT%20通訊協定.md#回應指定時間點後各模組設備功能最新狀態-cmd104)。
 
 
-## 查詢系統模組情境/智慧控制/排程各功能內容
+## 查詢系統模組情境/智慧控制/排程/推播各功能內容
 
 URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsqryreq`
 
-本功能為 [MQTT 通訊協定 - 查詢系統模組情境/智慧控制/排程各功能內容](./MQTT%20通訊協定.md#查詢系統模組情境智慧控制排程各功能內容-cmd5) 中原有功能，只是改用 Web API 查詢。
+本功能為 [MQTT 通訊協定 - 查詢系統模組情境/智慧控制/排程/推播各功能內容](./MQTT%20通訊協定.md#查詢系統模組情境智慧控制排程推播各功能內容-cmd5) 中原有功能，只是改用 Web API 查詢。
 
 1. App 送出 `POST` 資料如下:
 
@@ -548,6 +548,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsqryreq`
         SCENES | 情境
         WISDOMS | 智慧控制
         SCHEDULES | 排程
+        PUSHES | 推播
     * `_version_` 為版本數值，省略 (視同零)。若伺服器版本號碼大於請求方的值，則會送出該伺服器所有模組組態。現存的版本號號從 1 計起，每次組態變更會加 1，因此請求方的 `_version_` 為零則表示要求伺服器重送出指定系統模組設備的內容結構。
 
 
@@ -556,21 +557,21 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsqryreq`
     ```js
     {
         "server": "<伺服器ID>",
-        "status": 0,                // 0:成功, 非零:錯誤
-        "payload": {                // 情境/智慧控制/排程各功能內容 或 錯誤訊息(字串)
-            // 詳見 MQTT 通訊協定手冊 - 系統模組回應查詢情境/智慧控制/排程各功能內容
+        "status": 0,            // 0:成功, 非零:錯誤
+        "payload": {            // 情境/智慧控制/排程/推播各功能內容 或 錯誤訊息(字串)
+            // 詳見 MQTT 通訊協定手冊 - 系統模組回應查詢情境/智慧控制/排程/推播各功能內容
         }
     }
     ```
 
-    * 成功時 `payload` 內容詳見 [MQTT 通訊協定 - 系統模組回應查詢情境/智慧控制/排程各功能內容](./MQTT%20通訊協定.md#系統模組回應查詢情境智慧控制排程各功能內容-cmd105)。
+    * 成功時 `payload` 內容詳見 [MQTT 通訊協定 - 系統模組回應查詢情境/智慧控制/排程/推播各功能內容](./MQTT%20通訊協定.md#系統模組回應查詢情境智慧控制排程推播各功能內容-cmd105)。
 
 
-## 異動系統模組情境/智慧控制/排程各功能內容
+## 異動系統模組情境/智慧控制/排程/推播各功能內容
 
 URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
 
-本功能為 [MQTT 通訊協定 - 異動系統模組情境/智慧控制/排程各功能內容](./MQTT%20通訊協定.md#異動系統模組情境智慧控制排程各功能內容-cmd6) 中原有功能，只是改用 Web API 查詢。
+本功能為 [MQTT 通訊協定 - 異動系統模組情境/智慧控制/排程/推播各功能內容](./MQTT%20通訊協定.md#異動系統模組情境智慧控制排程推播各功能內容-cmd6) 中原有功能，只是改用 Web API 查詢。
 
 1. App 送出 `POST` 資料如下:
 
@@ -586,9 +587,9 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
     }
     ```
 
-    * `_id_` = `SCENES`(情境)、`WISDOMS`(智慧控制)、`SCHEDULES`(排程)。
+    * `_id_` = `SCENES`(情境)、`WISDOMS`(智慧控制)、`SCHEDULES`(排程)、`PUSHES`(推播)。
     * `_action_` = `add`(增加)、`delete`(刪除)、`update`(更改)、`replace`(完全取代)。
-    * `_payload_` 內容因 `SCENES`(情境)、`WISDOMS`(智慧控制)、`SCHEDULES`(排程) 而不同，如下所述:
+    * `_payload_` 內容因 `SCENES`(情境)、`WISDOMS`(智慧控制)、`SCHEDULES`(排程)、`PUSHES`(推播) 而不同，如下所述:
 
     1. 情境: `_id_` = `SCENES`
 
@@ -606,7 +607,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
         }
         ```
 
-        * 詳細說明參見 [MQTT 通訊協定 - 異動系統模組情境/智慧控制/排程各功能內容 - SCENES 情境](./MQTT%20通訊協定.md#scenes)。(此處的 `payload` 就是對應 MQTT 訊息中的 `functions`)
+        * 詳細說明參見 [MQTT 通訊協定 - 異動系統模組情境/智慧控制/排程/推播各功能內容 - SCENES 情境](./MQTT%20通訊協定.md#scenes)。(此處的 `payload` 就是對應 MQTT 訊息中的 `functions`)
 
         `_action_` = `delete`(刪除):
         ```js
@@ -637,7 +638,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
                 "interval": 0 // 當 next=0 時, 表示 expression 成立後下次執行的間隔秒數
         }
         ```
-        * 詳細說明參見 [MQTT 通訊協定 - 異動系統模組情境/智慧控制/排程各功能內容 - WISDOMS 智慧控制](./MQTT%20通訊協定.md#wisdoms)。(此處的 `payload` 就是對應 MQTT 訊息中的 `functions`)
+        * 詳細說明參見 [MQTT 通訊協定 - 異動系統模組情境/智慧控制/排程/推播各功能內容 - WISDOMS 智慧控制](./MQTT%20通訊協定.md#wisdoms)。(此處的 `payload` 就是對應 MQTT 訊息中的 `functions`)
 
         `_action_` = `delete`(刪除):
         ```js
@@ -670,11 +671,39 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
         }
         ```
 
-        * 詳細說明參見 [MQTT 通訊協定 - 異動系統模組情境/智慧控制/排程各功能內容 - SCHEDULES 排程](./MQTT%20通訊協定.md#schedules)。(此處的 `payload` 就是對應 MQTT 訊息中的 `functions`)
+        * 詳細說明參見 [MQTT 通訊協定 - 異動系統模組情境/智慧控制/排程/推播各功能內容 - SCHEDULES 排程](./MQTT%20通訊協定.md#schedules)。(此處的 `payload` 就是對應 MQTT 訊息中的 `functions`)
 
         `_action_` = `delete`(刪除):
         ```js
         "payload": [ "排程ID", ... ]
+        ```
+
+    1. 推播: `_id_` = `PUSHES`
+
+        `_action_` = `add`(增加)、`update`(更改)、`replace`(完全取代):
+        ```js
+        "payload": {
+            "推播ID": {
+                "name": "*推播名稱*",
+                "comment": "*註解*",    // 註解: 本欄位為選項，僅供使用者自行運用
+                "message": "*訊息*",    // 訊息內容
+                "sound": "*音效*",      // 音效 ID
+                "icon": "*圖標*",       // 圖標 ID
+                "data": {               // 系統通知給 App 的額外資訊
+                    "space": "*空間*",
+                    "page": "*頁面*"
+                    // 依 App 需求增加...
+                }
+            },
+            // 其他推播...
+        }
+        ```
+
+        * 詳細說明參見 [MQTT 通訊協定 - 異動系統模組情境/智慧控制/排程/推播各功能內容 - PUSHES 推播](./MQTT%20通訊協定.md#pushes)。(此處的 `payload` 就是對應 MQTT 訊息中的 `functions`)
+
+        `_action_` = `delete`(刪除):
+        ```js
+        "payload": [ "推播ID", ... ]
         ```
 
 1. 網頁伺服器回覆:
@@ -687,7 +716,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
     }
     ```
 
-    * `payload` 內容詳見 [MQTT 通訊協定 - 系統模組回應異動情境/智慧控制/排程各功能內容](./MQTT%20通訊協定.md#系統模組回應異動情境智慧控制排程各功能內容-cmd106)。
+    * `payload` 內容詳見 [MQTT 通訊協定 - 系統模組回應異動情境/智慧控制/排程/推播各功能內容](./MQTT%20通訊協定.md#系統模組回應異動情境智慧控制排程推播各功能內容-cmd106)。
 
 
 ## 訊息語系 (lang)

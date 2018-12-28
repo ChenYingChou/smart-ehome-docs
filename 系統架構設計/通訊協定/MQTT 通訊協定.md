@@ -253,7 +253,7 @@ App → 伺服器 | `to/$YS/<cid>`
 
 ## 控制模組/設備/功能 (cmd=3)
 
-由 App 或 `情境/智慧控制/排程` 觸發送往通訊模組:
+由 App 或 `情境/智慧控制/排程/推播` 觸發送往通訊模組:
 
 方向 | MQTT 主題
 :---:|----
@@ -323,7 +323,7 @@ App → 通訊模組 | `to/<mid>`
     ```
 
 
-## 查詢系統模組情境/智慧控制/排程各功能內容 (cmd=5)
+## 查詢系統模組情境/智慧控制/排程/推播各功能內容 (cmd=5)
 
 方向 | MQTT 主題
 :---:|----
@@ -347,11 +347,12 @@ App 請求系統模組各項目功能內容結構:
     SCENES | 情境
     WISDOMS | 智慧控制
     SCHEDULES | 排程
+    PUSHES | 推播
 
 * `_version_` 為版本數值，若伺服器版本號碼大於請求方的值，則會送出該伺服器所有模組組態。現存的版本號號從 1 計起，每次組態變更會加 1，因此請求方的 `_version_` 為零則表示要求伺服器重送出指定模組/設備的內容結構。
 
 
-## 系統模組回應查詢情境/智慧控制/排程各功能內容 (cmd=105)
+## 系統模組回應查詢情境/智慧控制/排程/推播各功能內容 (cmd=105)
 
 方向 | MQTT 主題
 :---:|----
@@ -363,7 +364,7 @@ App 請求系統模組各項目功能內容結構:
         "cmd": 105,
         "status": 0,
         "payload": {
-            "id": "SCENES",         // SCENES, WISDOMS, SCHEDULES
+            "id": "SCENES",         // SCENES, WISDOMS, SCHEDULES, PUSHES
             "version": _version_,   // 最後的版號
             "functions": null
         }
@@ -537,7 +538,7 @@ App 請求系統模組各項目功能內容結構:
                 "interval": 3600
             }
             ```
-    * `ExprsList` 為一陣列，每一元素對應 `states` 的 `Si.T[].expression` 運算式展開為樹狀結構，僅供 App 端程式參考用。在 [異動系統模組情境/智慧控制/排程各功能內容 (cmd=6)](#異動系統模組情境智慧控制排程各功能內容-cmd6) 時，不需帶此欄位。
+    * `ExprsList` 為一陣列，每一元素對應 `states` 的 `Si.T[].expression` 運算式展開為樹狀結構，僅供 App 端程式參考用。在 [異動系統模組情境/智慧控制/排程/推播各功能內容 (cmd=6)](#異動系統模組情境智慧控制排程推播各功能內容-cmd6) 時，不需帶此欄位。
         * 每一 `Si.Tj.expression` 展開為樹狀節點 (陣列: 2\~3 元素):
             `[ 運算子, 左運算式, 右運算式 ]`
         * `運算子` (字串) = `"運算符號"` | `"Var"` | `"Constant"`
@@ -745,8 +746,75 @@ App 請求系統模組各項目功能內容結構:
     }
     ```
 
+1. <b id="pushes">`PUSHES`</b> 推播:
 
-## 異動系統模組情境/智慧控制/排程各功能內容 (cmd=6)
+    ```js
+    {
+        "cmd": 105,
+        "status": 0,
+        "payload": {
+            "id": "PUSHES",
+            "version": _version_,
+            "functions": {
+                "推播ID": {
+                    "name": "*推播名稱*",
+                    "comment": "*註解*",    // 註解: 本欄位為選項，僅供使用者自行運用
+                    "message": "*訊息*",    // 訊息內容
+                    "sound": "*音效*",      // 音效 ID
+                    "icon": "*圖標*",       // 圖標 ID
+                    "data": {               // 系統通知給 App 的額外資訊
+                        "space": "*空間*",
+                        "page": "*頁面*"
+                        // 依 App 需求增加...
+                    }
+                },
+                // 其他推播...
+            }
+        }
+    }
+    ```
+
+    * `comment` 欄位為選項，僅提供使用者註解用，當使用者曾指派過值時才會呈現。
+    * `message` 欄位為要推播給 App 的訊息內容。
+    * `sound`、`icon` 欄位為各 App 所屬系統 (iOS、Android、Web App) 推播所需欄位，必須要在 App 內建置相對的資源，但不見得有對應的作用，如 iOS 推播無自訂的 `icon`，而 Web App 推播則無音效 `sound`。
+    * `data` 為 JSON 物件，由系統通知給 App 的額外資訊。
+
+    範例:
+    ```js
+    {
+        "cmd": 105,
+        "status": 0,
+        "payload": {
+            "id": "PUSHES",
+            "version": 1,
+            "functions": {
+                "000": {
+                    "name": "警鈴-2F",
+                    "message": "警鈴-2F",
+                    "sound": "alarm",
+                    "icon": "",
+                    "data": {
+                        "space": "AMMA-RD",
+                        "page": ""
+                    }
+                },
+                "001": {
+                    "name": "入侵警報-2F",
+                    "message": "入侵警報-2F",
+                    "sound": "2.mp3",
+                    "icon": "",
+                    "data": {
+                        "space": "AMMA-RD",
+                        "page": ""
+                    }
+                }
+            }
+        }
+    }
+    ```
+
+
+## 異動系統模組情境/智慧控制/排程/推播各功能內容 (cmd=6)
 
 方向 | MQTT 主題
 :---:|----
@@ -765,9 +833,9 @@ App 請求系統模組各項目功能內容結構:
 }
 ```
 
-* `_id_` = `SCENES`(情境)、`WISDOMS`(智慧控制)、`SCHEDULES`(排程)。
+* `_id_` = `SCENES`(情境)、`WISDOMS`(智慧控制)、`SCHEDULES`(排程)、`PUSHES`(推播)。
 * `_action_` = `add`(增加)、`delete`(刪除)、`update`(更新)、`replace`(完全取代)。
-* `payload` 內容因 `SCENES`(情境)、`WISDOMS`(智慧控制)、`SCHEDULES`(排程) 而不同，見以下說明。
+* `payload` 內容因 `SCENES`(情境)、`WISDOMS`(智慧控制)、`SCHEDULES`(排程)、`PUSHES`(推播) 而不同，見以下說明。
 
 1. 情境: `_id_` = `SCENES`
 
@@ -852,8 +920,36 @@ App 請求系統模組各項目功能內容結構:
     "payload": [ "排程ID", ... ]
     ```
 
+1. 推播: `_id_` = `PUSHES`
 
-## 系統模組回應異動情境/智慧控制/排程各功能內容 (cmd=106)
+    `_action_` = `add`(增加)、`update`(更新)、`replace`(完全取代):
+    ```js
+    "payload": {
+        "推播ID": {
+            "name": "*推播名稱*",
+            "comment": "*註解*",    // 註解: 本欄位為選項，僅供使用者自行運用
+            "message": "*訊息*",    // 訊息內容
+            "sound": "*音效*",      // 音效 ID
+            "icon": "*圖標*",       // 圖標 ID
+            "data": {               // 系統通知給 App 的額外資訊
+                "space": "*空間*",
+                "page": "*頁面*"
+                // 依 App 需求增加...
+            }
+        },
+        // 其他推播...
+    }
+    ```
+
+    * 內容設定請參考此處說明: [PUSHES 推播](#pushes)。
+
+    `_action_` = `delete`(刪除):
+    ```js
+    "payload": [ "推播ID", ... ]
+    ```
+
+
+## 系統模組回應異動情境/智慧控制/排程/推播各功能內容 (cmd=106)
 
 方向 | MQTT 主題
 :---:|----
