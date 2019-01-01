@@ -634,6 +634,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
         Tj = {  // Tj{j=1~m} 移轉物件 (Transition)
                 "expression": expression, // 條件運算式
                 "actions": [ ... ], // <action-list>
+                "error": "*錯誤訊息*", // 若 `expression` 成立要送出的錯誤訊息
                 "next": 0, // -1: 結束(智慧控制), 0: 不移轉(繼續下個), 1~n: 移轉到 S1~Sn
                 "interval": 0 // 當 next=0 時, 表示 expression 成立後下次執行的間隔秒數
         }
