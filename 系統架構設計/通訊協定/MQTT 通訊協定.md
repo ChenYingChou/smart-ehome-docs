@@ -512,8 +512,14 @@ App 請求系統模組各項目功能內容結構:
             `&`  `^`  `｜`     | `&` > `^` > `｜`  | 數值位元運算: 且、互斥、或
             `&&` `❘❘`       　 | 最低: `&&` > `❘❘` | 邏輯運算: 且 (`&&`, `and`)、或 (`❘❘`, `or`)
 
-            1. 運算式字串中的變數可用 `雙引號`、`單引號` 或 `方括號` 包起來。此處變數是指本系統中 "`模組|設備|功能`" 的狀態值。
-            1. 本智慧控制內部變數 `errors` (不分大小寫，可用於運算式中): 表示在現行狀態 `Si` 執行週期時所產生的錯誤次數。此錯誤是指 `T[j=1\~m].error` 引發的次數。
+            1. 運算式字串中的變數可用 `雙引號`、`單引號` 或 `方括號` 包起來。此處變數是指本系統中 "`模組｜設備｜功能`" 的狀態值。
+            1. 智慧控制內部變數: (不分大小寫，於運算式中使用)
+
+                內部變數 | 說明
+                :------:|---
+                `errors` | 現行狀態 `Si` 執行週期時所產生的錯誤次數<br>此錯誤是指 `T[1~m].error` 發生的項次
+                `self` | 指目前智慧控制本身的狀態，0:被中止，1:執行中<br>相當於外部變數 "`$00｜WISDOMS｜本智慧控制ID`"
+
             1. 若不確定運算式的優先序，請用括號括起來，例如:\
             `"dsc|dido-0|DI001" == 1 && ("dsc|amLight-1|PD001" == 0 || "dsc|amLight-1|PD002" == 0)`
             1. 邏輯運算結果為 `true` 或 `false`。數值轉邏輯值: 非零為 `true`，零為 `false`。
@@ -671,109 +677,109 @@ App 請求系統模組各項目功能內容結構:
     ]
     ```
 
-    【保全範例】
+    【保全範例】運算式中使用 `errors` 及 `self` 內部變數
     ```js
     states = [
-        [ // S1: 初始化, 檢查窗戶是否關閉, 若全部都關閉等 60 秒後關燈移轉到 S2
+        [ // S1: 初始化, 檢查窗戶是否關閉, 若都關閉等 30 秒後移轉到 S2
             { // T1: 工程部前窗
                 "expression": "[dsc|dido-0|DI007] == 1",
-                "actions": [],      // 無動作
+                "actions": [],                              // 無動作
                 "error": "工程部前窗未關",
-                "next": 0,          // 繼續下個移轉檢測
-                "interval": 15
+                "next": 0,                                  // 繼續下個移轉檢測
+                "interval": 0
             },
             { // T2: 工程部側窗
                 "expression": "[dsc|dido-0|DI008] == 1",
-                "actions": [],      // 無動作
+                "actions": [],                              // 無動作
                 "error": "工程部側窗未關",
-                "next": 0,          // 繼續下個移轉檢測
-                "interval": 15
+                "next": 0,                                  // 繼續下個移轉檢測
+                "interval": 0
             },
             { // T3: 辦公室A窗戶
                 "expression": "[dsc|dido-0|DI011] == 1",
-                "actions": [],      // 無動作
+                "actions": [],                              // 無動作
                 "error": "辦公室A窗戶未關",
-                "next": 0,          // 繼續下個移轉檢測
-                "interval": 15
+                "next": 0,                                  // 繼續下個移轉檢測
+                "interval": 0
             },
             { // T4: 若發生錯誤持續 30 秒則結束本智慧控制
                 "expression": "errors:30 > 0",
                 "actions": [],
-                "next": -1,         // 結束本智慧控制
+                "next": -1,                                 // 結束本智慧控制
                 "interval": 0
             },
-            { // T5: 若無錯誤等 60 秒後關燈移轉到 S2
-                "expression": "errors:60 == 0",
+            { // T5: 若無錯誤等 30 秒後關燈移轉到 S2
+                "expression": "errors:30 == 0",
                 "actions": [
-                    {"id": "[$00|SCENES|AllLightsOff|1]"},  // 觸發關燈情境
-                    {"id": "[$00|PUSHES|SecurityOn|1]"}     // 推播 "保全已啟動"
+                    {"id": "$00|SCENES|AllLightsOff|1"},    // 觸發關燈情境
+                    {"id": "$00|PUSHES|SecurityOn|1"}       // 推播 "保全已啟動"
                 ],
-                "next": 1,         // 移轉到 S2
+                "next": 2,                                  // 移轉到 S2
                 "interval": 0
             }
         ],
         [ // S2: 保全執行中
-            { // T1: 檢查自己狀態是否關閉
+            { // T1: 檢查本身是否因外部觸發關閉
                 "expression": "self == 0",
                 "actions": [
-                    {"id": "[$00|PUSHES|SecurityOff|1]"}     // 推播 "保全已關閉"
+                    {"id": "$00|PUSHES|SecurityOff|1"}      // 推播 "保全已關閉"
                 ],
-                "next": -1,         // 結束本智慧控制
+                "next": -1,                                 // 結束本智慧控制
                 "interval": 0
             },
             { // T2: 工程部前窗
                 "expression": "[dsc|dido-0|DI007] == 1",
                 "actions": [
-                    {"id": "[$00|PUSHES|Intrude-DI007|1]"}  // 推播 "入侵警報"
+                    {"id": "$00|PUSHES|Intrude-DI007|1"}    // 推播 "入侵警報"
                 ],
                 "error": "工程部前窗被入侵",
-                "next": 0,          // 繼續下個移轉檢測
-                "interval": 15
+                "next": 0,                                  // 繼續下個移轉檢測
+                "interval": 30
             },
             { // T3: 工程部側窗
                 "expression": "[dsc|dido-0|DI008] == 1",
                 "actions": [
-                    {"id": "[$00|PUSHES|Intrude-DI008|1]"}  // 推播 "入侵警報"
+                    {"id": "$00|PUSHES|Intrude-DI008|1"}    // 推播 "入侵警報"
                 ],
                 "error": "工程部側窗被入侵",
-                "next": 0,          // 繼續下個移轉檢測
-                "interval": 15
+                "next": 0,                                  // 繼續下個移轉檢測
+                "interval": 30
             },
             { // T4: 辦公室A窗戶
                 "expression": "[dsc|dido-0|DI011] == 1",
                 "actions": [
-                    {"id": "[$00|PUSHES|Intrude-DI011|1]"}  // 推播 "入侵警報"
+                    {"id": "$00|PUSHES|Intrude-DI011|1"}    // 推播 "入侵警報"
                 ],
                 "error": "辦公室A窗戶被入侵",
-                "next": 0,          // 繼續下個移轉檢測
-                "interval": 15
+                "next": 0,                                  // 繼續下個移轉檢測
+                "interval": 30
             },
             { // T5: 前門
                 "expression": "[dsc|dido-0|DI001] == 1",
                 "actions": [
-                    {"id": "[$00|PUSHES|Intrude-DI001|1]"}  // 推播 "入侵警報"
+                    {"id": "$00|PUSHES|Intrude-DI001|1"}    // 推播 "入侵警報"
                 ],
                 "error": "前門被入侵",
-                "next": 0,          // 繼續下個移轉檢測
-                "interval": 15
+                "next": 0,                                  // 繼續下個移轉檢測
+                "interval": 30
             },
             { // T6: 後陽台
                 "expression": "[dsc|dido-0|DI013] == 1",
                 "actions": [
-                    {"id": "[$00|PUSHES|Intrude-DI013|1]"}  // 推播 "入侵警報"
+                    {"id": "$00|PUSHES|Intrude-DI013|1"}    // 推播 "入侵警報"
                 ],
                 "error": "後陽台被入侵",
-                "next": 0,          // 繼續下個移轉檢測
-                "interval": 15
+                "next": 0,                                  // 繼續下個移轉檢測
+                "interval": 30
             },
             { // T7: 若同時發生兩則以上警報則觸發警鈴 5 秒
-                "expression": "errors > 1",
+                "expression": "errors >= 2",
                 "actions": [
-                    {"id": "[dsc|dido-0|DO013|1]", "delay0":0},
-                    {"id": "[dsc|dido-0|DO013|0]", "delay0":5},
+                    {"id": "dsc|dido-0|DO013|1", "delay0":0},
+                    {"id": "dsc|dido-0|DO013|0", "delay0":5},
                 ],
-                "next": 0,          // 結束本智慧控制
-                "interval": 10
+                "next": 0,                                  // 結束本智慧控制
+                "interval": 15
             },
         ]
     ]
