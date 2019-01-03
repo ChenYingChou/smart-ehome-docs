@@ -599,21 +599,21 @@ App 請求系統模組各項目功能內容結構:
               [ // S1
                 ["&&",// T1: [dsc|dido-0|DI001] == 1 && [dsc|amLight-1|PD001] == 0
                   ["==",
-                    ["Var", "dsc|dido-0|DI001"],
+                    ["Var", "[dsc|dido-0|DI001]"],
                     ["Constant", 1]
                   ],
                   ["==",
-                    ["Var", "dsc|amLight-1|PD001"],
+                    ["Var", "[dsc|amLight-1|PD001]"],
                     ["Constant", 0]
                   ]
                 ],
                 ["&&",// T2: [dsc|dido-0|DI001]:30 == 0 && [dsc|amLight-1|PD001]:60 == 1
                   ["==",
-                    ["Var", "dsc|dido-0|DI001", 30],
+                    ["Var", "[dsc|dido-0|DI001]", 30],
                     ["Constant", 0]
                   ],
                   ["==",
-                    ["Var", "dsc|amLight-1|PD001", 60],
+                    ["Var", "[dsc|amLight-1|PD001]", 60],
                     ["Constant", 1]
                   ]
                 ]
@@ -722,7 +722,8 @@ App 請求系統模組各項目功能內容結構:
             { // T1: 檢查本身是否因外部觸發關閉
                 "expression": "self == 0",
                 "actions": [
-                    {"id": "$00|PUSHES|SecurityOff|1"}      // 推播 "保全已關閉"
+                    {"id": "$00|PUSHES|SecurityOff|1"},     // 推播 "保全已關閉"
+                    {"id": "dsc|dido-0|DO013|0"}            // 確保警鈴被關閉
                 ],
                 "next": -1,                                 // 結束本智慧控制
                 "interval": 0
@@ -776,10 +777,10 @@ App 請求系統模組各項目功能內容結構:
                 "expression": "errors >= 2",
                 "actions": [
                     {"id": "dsc|dido-0|DO013|1", "delay0":0},
-                    {"id": "dsc|dido-0|DO013|0", "delay0":5},
+                    {"id": "dsc|dido-0|DO013|0", "delay0":5}
                 ],
-                "next": 0,                                  // 結束本智慧控制
-                "interval": 15
+                "next": 0,
+                "interval": 15                              // 觸發警鈴後 15 秒後再檢查
             },
         ]
     ]
