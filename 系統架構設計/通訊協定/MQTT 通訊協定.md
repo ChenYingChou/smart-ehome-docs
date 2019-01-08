@@ -898,9 +898,14 @@ App 請求系統模組各項目功能內容結構:
     ```
 
     * `comment` 欄位為選項，僅提供使用者註解用，當使用者曾指派過值時才會呈現。
-    * `message` 欄位為要推播給 App 的訊息內容。
+    * `message` 欄位為要推播給 App 的訊息內容。在觸發推播命令 [控制模組/設備/功能 (cmd=3)](#控制模組設備功能-cmd3) 時可以指定要推播的訊息，放在變更狀態欄位，其中 `%m` 表示用原設定的訊息插入之。參見隨後應用範例。
     * `sound`、`icon` 欄位為各 App 所屬系統 (iOS、Android、Web App) 推播所需欄位，必須要在 App 內建置相對的資源，但不見得有對應的作用，如 iOS 推播無自訂的 `icon`，而 Web App 推播則無音效 `sound`。
-    * `data` 為 JSON 物件，由系統通知給 App 的額外資訊。
+    * `data` 為 JSON 物件，由系統通知給 App 的額外資訊。在推播伺服器端送往 FCM (Firebase Cloud Messaging) 時會新增兩個欄位: (必須原 `data` 未指定這些鍵值)
+
+        鍵 (Key)      | 值 (Value)
+        :------------:|-------
+        "`timestamp`" | 整數值: MQTT 推播觸發時間 (Unix 時間戳記, 單位 ms)
+        "`space`"     | 字串: Server UUID (8-4-4-4-12), 也是 FCM 的推播主題
 
     範例:
     ```js
@@ -911,28 +916,30 @@ App 請求系統模組各項目功能內容結構:
             "id": "PUSHES",
             "version": 1,
             "functions": {
-                "000": {
-                    "name": "警鈴-2F",
-                    "message": "警鈴-2F",
-                    "sound": "alarm",
-                    "icon": "",
-                    "data": {
-                        "space": "AMMA-RD",
-                        "page": ""
-                    }
+                "0": {
+                    "name": "警鈴",
+                    "message": "警鈴",
+                    "sound": "alarm"
                 },
-                "001": {
-                    "name": "入侵警報-2F",
-                    "message": "入侵警報-2F",
-                    "sound": "2.mp3",
-                    "icon": "",
-                    "data": {
-                        "space": "AMMA-RD",
-                        "page": ""
-                    }
+                "2": {
+                    "name": "入侵警報",
+                    "message": "入侵警報",
+                    "sound": "2"
                 }
             }
         }
+    }
+    ```
+
+    應用範例: 在智慧控制保全中, 後陽台感測觸發時送出入侵警報訊息 (上面的範例 `$00|PUSHES|2`)
+    ```js
+    { // T?: 後陽台入侵
+        "expression": "[dsc|dido-0|DI013] == 1",
+        "actions": [
+            {"id": "$00|PUSHES|2|2樓後陽台 %m"}      // 推播內容會替換為 "2樓後陽台 入侵警報"
+        ],
+        "next": 0,                                  // 繼續下個移轉檢測
+        "interval": 30
     }
     ```
 
@@ -1065,6 +1072,7 @@ App 請求系統模組各項目功能內容結構:
     ```
 
     * 內容設定請參考此處說明: [PUSHES 推播](#pushes)。
+    * 新增或更新時 `name` 未指定會以 `message` 替代。
 
     `_action_` = `delete`(刪除):
     ```js
