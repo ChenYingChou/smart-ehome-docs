@@ -1,5 +1,7 @@
 # Web API
 
+[[TOC]]
+
 ## App 尋找本地伺服器
 
 若為私有 IP，則先以 UDP Port 9998 廣播尋找本地伺服器，若有回應則連接到指定伺服器，否則連到預設雲端伺服器 (`<inet.web_api>`: `https://oisp.smart-ehome.com/api`)。
@@ -81,7 +83,7 @@
 
 1. 為了安全起見 Web API 一律採用 POST 方法，若網站有對外開放時請使用 SSL 加密，避免帳戶資料的外洩。
 1. `POST` 資料內容可選擇下列兩種表示法，請於 HTTP 標題指定 `Content-Type`:\
-    以 [App 設備第一次要先向本地伺服器註冊 `create_device`](#app-設備第一次要先向本地伺服器註冊) 範例說明:
+    以 [App 設備第一次要先向本地伺服器註冊 `create_device`](#app-設備第一次要先向本地伺服器註冊-create_device) 範例說明:
     ```
     server=<本地伺服器ID>
     userid=<用戶第三方認證ID>
@@ -133,13 +135,15 @@
     ```
 
 
-## App 設備第一次要先向本地伺服器註冊
+## App 用戶及設備註冊
+
+### App 設備第一次要先向本地伺服器註冊 (create_device)
 
 URI = [`<local.web_api>`](#json)`/create_device`
 
 1. App 送出 `POST` 資料如下:
 
-    第二個起的用戶第一次授權必須向 [系統管理者取得新用戶的授權碼 `get_authcode`](#系統管理者取得新用戶的授權碼)，第一個註冊的用戶即為系統管理者 (此時不檢查 `authcode`)。
+    第二個起的用戶第一次授權必須向 [系統管理者取得新用戶的授權碼 `get_authcode`](#系統管理者取得新用戶的授權碼-get_authcode)，第一個註冊的用戶即為系統管理者 (此時不檢查 `authcode`)。
 
     ```
     server=<本地伺服器ID>
@@ -185,7 +189,7 @@ URI = [`<local.web_api>`](#json)`/create_device`
     * 每次授權碼使用後會失效，因此系統管理者要為每個新設備取得授權碼。每次取得的授權碼有效期間只有 4 個小時，超過時間後將無法註冊新設備，請重新取得授權碼後再註冊設備。
 
 
-## 用戶取得已註冊設備
+### 用戶取得已註冊設備 (get_devices)
 
 URI = [`<local.web_api>`](#json)`/get_devices`
 
@@ -231,7 +235,7 @@ URI = [`<local.web_api>`](#json)`/get_devices`
     ```
 
 
-## 用戶刪除已註冊設備
+### 用戶刪除已註冊設備 (delete_device)
 
 URI = [`<local.web_api>`](#json)`/delete_device`
 
@@ -247,7 +251,7 @@ URI = [`<local.web_api>`](#json)`/delete_device`
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
     * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。通常就是 App 安裝所在的設備，每次註冊後必須將帳號、密碼儲存起來。
     * `target_device`: 驗證用戶合法性後會將指定的設備刪除之，請注意這裡的是指要刪除的設備，不是帳號 `loginid` 關聯的設備，請不要誤刪除自己本身。若未指定 `target_device` 則視同刪除本身。
-    * 若不是系統管理者時，當用戶所有註冊設備都已清空時，本系統會自動移除此用戶資訊。若是系統管理者名下已無註冊設備，在[重新註冊一個新的設備](#app-設備第一次要先向本地伺服器註冊)時並不需要授權碼驗證。
+    * 若不是系統管理者時，當用戶所有註冊設備都已清空時，本系統會自動移除此用戶資訊。若是系統管理者名下已無註冊設備，在[重新註冊一個新的設備](#app-設備第一次要先向本地伺服器註冊-create_device)時並不需要授權碼驗證。
 
 1. 網頁伺服器回覆:
 
@@ -268,7 +272,7 @@ URI = [`<local.web_api>`](#json)`/delete_device`
     ```
 
 
-## 系統管理者取得新用戶的授權碼
+### 系統管理者取得新用戶的授權碼 (get_authcode)
 
 URI = [`<local.web_api>`](#json)`/get_authcode`
 
@@ -299,7 +303,7 @@ URI = [`<local.web_api>`](#json)`/get_authcode`
     ```
 
 
-## 取得註冊用戶名單
+### 取得註冊用戶名單 (get_reg_users)
 
 URI = [`<local.web_api>`](#json)`/get_reg_users`
 
@@ -348,7 +352,7 @@ URI = [`<local.web_api>`](#json)`/get_reg_users`
     * 非系統管理者只會返回自己的資料 (陣列中只有一筆)。
 
 
-## 變更用戶名稱或系統管理者身份
+### 變更用戶名稱或系統管理者身份 (update_reg_user)
 
 URI = [`<local.web_api>`](#json)`/update_reg_user`
 
@@ -392,7 +396,7 @@ URI = [`<local.web_api>`](#json)`/update_reg_user`
     * 本系統允許多個系統管理者。
 
 
-## 刪除註冊用戶
+### 刪除註冊用戶 (delete_reg_user)
 
 URI = [`<local.web_api>`](#json)`/delete_reg_user`
 
@@ -431,7 +435,7 @@ URI = [`<local.web_api>`](#json)`/delete_reg_user`
     * 用戶被刪除後，必須重新註冊設備後方可繼續使用本系統。
 
 
-## App 登錄取得取得 MQTT 通訊時所需的資訊
+## App 登錄取得取得 MQTT 通訊時所需的資訊 (login)
 
 URI = [`<WebAPI>`](#網站連線主機名稱)`/login`
 
@@ -469,11 +473,13 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/login`
     * `<client_id>`、`topic.pub`、`topic.sub` 於 MQTT 連線登入時使用，參見 [MQTT 通訊協定 - Node JS 範例](./MQTT%20通訊協定.md#node-js-範例)。
 
 
-## 查詢系統中目前組態資訊
+## MQTT 系統功能轉接
+
+### 查詢系統中目前組態資訊 (mq_confreq)
 
 URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_confreq`
 
-本功能為 [MQTT 通訊協定 - 查詢伺服器下各模組設備組態](./MQTT%20通訊協定.md#查詢伺服器下各模組設備組態-cmd1) 中原有功能，只是改用 Web API 查詢。
+本功能為 [MQTT 通訊協定 - 查詢伺服器下各模組設備組態 (cmd=1)](./MQTT%20通訊協定.md#查詢伺服器下各模組設備組態-cmd1) 中原有功能，改用 Web API 轉接。
 
 1. App 送出 `POST` 資料如下:
 
@@ -496,14 +502,14 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_confreq`
     }
     ```
 
-    * 成功時 `payload` 內容詳見 [MQTT 通訊協定 - 伺服器回應各模組/設備組態](./MQTT%20通訊協定.md#伺服器回應各模組設備組態-cmd101)。
+    * 成功時 `payload` 內容詳見 [MQTT 通訊協定 - 伺服器回應各模組/設備組態 (cmd=101)](./MQTT%20通訊協定.md#伺服器回應各模組設備組態-cmd101)。
 
 
-## 查詢系統中所有模組/設備/功能最新狀態
+### 查詢系統中所有模組/設備/功能最新狀態 (mq_statusreq)
 
 URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_statusreq`
 
-本功能為 [MQTT 通訊協定 - 查詢模組/設備/功能最新狀態](./MQTT%20通訊協定.md#查詢模組設備功能最新狀態-cmd4) 中原有功能，只是改用 Web API 查詢。
+本功能為 [MQTT 通訊協定 - 查詢模組/設備/功能最新狀態 (cmd=4)](./MQTT%20通訊協定.md#查詢模組設備功能最新狀態-cmd4) 中原有功能，改用 Web API 轉接。
 
 1. App 送出 `POST` 資料如下:
 
@@ -526,14 +532,46 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_statusreq`
     }
     ```
 
-    * 成功時 `payload` 內容詳見 [MQTT 通訊協定 - 回應指定時間點後各模組/設備/功能最新狀態](./MQTT%20通訊協定.md#回應指定時間點後各模組設備功能最新狀態-cmd104)。
+    * 成功時 `payload` 內容詳見 [MQTT 通訊協定 - 回應指定時間點後各模組/設備/功能最新狀態 (cmd=104)](./MQTT%20通訊協定.md#回應指定時間點後各模組設備功能最新狀態-cmd104)。
 
 
-## 查詢系統模組情境/智慧控制/排程/推播各功能內容
+### 送出控制模組/設備/功能最新狀態 (mq_ctlstatus)
+
+URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_ctlstatus`
+
+本功能為 [MQTT 通訊協定 - 控制模組/設備/功能 (cmd=3)](./MQTT%20通訊協定.md#控制模組設備功能-cmd3) 中原有功能，改用 Web API 轉接。
+
+App 送出 `POST` 資料如下:
+
+JSON: `Content-Type: application/json`
+```js
+{
+    "server": "<本地伺服器ID>"，
+    "loginid": "<登入帳號>"，
+    "password": "<登入密碼>"，
+    "payload": _payload_
+}
+```
+
+* `_payload_`: 參見 [MQTT 通訊協定 - 控制模組/設備/功能 (cmd=3)](./MQTT%20通訊協定.md#控制模組設備功能-cmd3)。
+
+範例: 送出 "測試 - 入侵警報" 推播訊息，參考 [MQTT 通訊協定 - PUSHES 推播](./MQTT%20通訊協定.md#pushes) 的 `message` 欄位及應用範例
+
+```js
+{
+    "server": "<本地伺服器ID>"，
+    "loginid": "<登入帳號>"，
+    "password": "<登入密碼>"，
+    "payload": "|$00|PUSHES|2|測試 - %m"    // 若只用原有推播設定訊息時, 狀態值給 "1" 即可
+}
+```
+
+
+### 查詢系統模組情境/智慧控制/排程/推播各功能內容 (mq_sdsqryreq)
 
 URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsqryreq`
 
-本功能為 [MQTT 通訊協定 - 查詢系統模組情境/智慧控制/排程/推播各功能內容](./MQTT%20通訊協定.md#查詢系統模組情境智慧控制排程推播各功能內容-cmd5) 中原有功能，只是改用 Web API 查詢。
+本功能為 [MQTT 通訊協定 - 查詢系統模組情境/智慧控制/排程/推播各功能內容 (cmd=5)](./MQTT%20通訊協定.md#查詢系統模組情境智慧控制排程推播各功能內容-cmd5) 中原有功能，改用 Web API 轉接。
 
 1. App 送出 `POST` 資料如下:
 
@@ -568,14 +606,14 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsqryreq`
     }
     ```
 
-    * 成功時 `payload` 內容詳見 [MQTT 通訊協定 - 系統模組回應查詢情境/智慧控制/排程/推播各功能內容](./MQTT%20通訊協定.md#系統模組回應查詢情境智慧控制排程推播各功能內容-cmd105)。
+    * 成功時 `payload` 內容詳見 [MQTT 通訊協定 - 系統模組回應查詢情境/智慧控制/排程/推播各功能內容 (cmd=105)](./MQTT%20通訊協定.md#系統模組回應查詢情境智慧控制排程推播各功能內容-cmd105)。
 
 
-## 異動系統模組情境/智慧控制/排程/推播各功能內容
+### 異動系統模組情境/智慧控制/排程/推播各功能內容 (mq_sdsupdreq)
 
 URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
 
-本功能為 [MQTT 通訊協定 - 異動系統模組情境/智慧控制/排程/推播各功能內容](./MQTT%20通訊協定.md#異動系統模組情境智慧控制排程推播各功能內容-cmd6) 中原有功能，只是改用 Web API 查詢。
+本功能為 [MQTT 通訊協定 - 異動系統模組情境/智慧控制/排程/推播各功能內容 (cmd=6)](./MQTT%20通訊協定.md#異動系統模組情境智慧控制排程推播各功能內容-cmd6) 中原有功能，改用 Web API 轉接。
 
 1. App 送出 `POST` 資料如下:
 
@@ -721,40 +759,53 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
     }
     ```
 
-    * `payload` 內容詳見 [MQTT 通訊協定 - 系統模組回應異動情境/智慧控制/排程/推播各功能內容](./MQTT%20通訊協定.md#系統模組回應異動情境智慧控制排程推播各功能內容-cmd106)。
+    * `payload` 內容詳見 [MQTT 通訊協定 - 系統模組回應異動情境/智慧控制/排程/推播各功能內容 (cmd=106)](./MQTT%20通訊協定.md#系統模組回應異動情境智慧控制排程推播各功能內容-cmd106)。
 
 
-## 送出控制模組/設備/功能最新狀態
+## 取得推播歷史訊息
 
-URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_ctlstatus`
+URI = [`<WebAPI>`](#網站連線主機名稱)`/messages`
 
-本功能為 [MQTT 通訊協定 - 控制模組/設備/功能 (cmd=3)](./MQTT%20通訊協定.md#控制模組設備功能-cmd3) 中原有功能，只是改用 Web API 查詢。
+取得 MQTT 系統推播的歷史訊息。
 
-App 送出 `POST` 資料如下:
+1. App 送出 `POST` 資料如下:
 
-JSON: `Content-Type: application/json`
-```js
-{
-    "server": "<本地伺服器ID>"，
-    "loginid": "<登入帳號>"，
-    "password": "<登入密碼>"，
-    "payload": _payload_
-}
-```
+    ```
+    server=<本地伺服器ID>
+    loginid=<登入帳號>
+    password=<登入密碼>
+    page=1
+    page_size=100
+    ```
 
-* `_payload_`: 參見 [MQTT 通訊協定 - 控制模組/設備/功能 (cmd=3)](./MQTT%20通訊協定.md#控制模組設備功能-cmd3)。
+    * `page`: 讀取第幾頁，從 1 計起。訊息由近到遠排序。
+    * `page_size`: 每頁多少筆訊息，本欄位為選項，預設為每頁 100 筆。
 
-範例: 送出 "測試 - 入侵警報" 推播訊息，參考 [MQTT 通訊協定 - PUSHES 推播](./MQTT%20通訊協定.md#pushes) 的 `message` 欄位及應用範例
+1. 網頁伺服器回覆:
 
-```js
-{
-    "server": "<本地伺服器ID>"，
-    "loginid": "<登入帳號>"，
-    "password": "<登入密碼>"，
-    "payload": "|$00|PUSHES|2|測試 - %m"    // 若只用原有推播設定訊息時, 狀態值給 "1" 即可
-}
-```
+    ```js
+    {
+        "server": "<伺服器ID>",
+        "status": 0,                // 0:成功, 非零:錯誤
+        "payload": {
+            "page": 1,
+            "page_size": 100,
+            "total_count": 350,
+            "messages": [
+                { "seqno": 350, "time": "2019-01-17 12:21:09", "body": "前門進出通知" },
+                { "seqno": 349, "time": "2019-01-17 10:26:20", "body": "測試 - 警鈴" },
+                //...
+                { "seqno": 251, "time": "2019-01-08 20:31:34", "body": "入侵警報 - 前門被打開" }
+            ]
+        }
+    }
+    ```
 
+    * `payload`: 當 `status` = 0 時，返回的為歷史訊息物件，否則為錯誤訊息。
+    * `page`: 頁次, 1~N， N = Ceiling(`total_count`/`page_size`)。
+    * `page_size`: 每頁多少筆訊息。
+    * `total_count`: 資料庫中總共有多少筆訊息。
+    * `messages`: 為歷史訊息陣列，每一訊息包含 `seqno`(序號)、`time`(時間戳記)、`body`(訊息內容)。
 
 
 ## 訊息語系 (lang)
@@ -778,15 +829,15 @@ JSON: `Content-Type: application/json`
 
 * `status = 1` 表示一般性錯誤，使用者請依訊息做對應處理即可，程式不需特別處理。除非在 API 中另有說明。
 
-* `status = 2` 請依 API 中說明處理，例如 [App 設備第一次要先向本地伺服器註冊](#app-設備第一次要先向本地伺服器註冊)。
+* `status = 2` 請依 API 中說明處理，例如 [App 設備第一次要先向本地伺服器註冊](#app-設備第一次要先向本地伺服器註冊-create_device)。
 
 * `status >= 10` 表示進入系統資料庫前發生錯誤，無法進行用戶、帳號授權及登入等處理:
 
-    | status | 訊息 | 處理措施 |
-    |:---:|:---:|---|
-    | 10 | 無效的伺服器 ID | 請確認您所連接是正確的伺服器, 或是請重新用 [UDP 尋找本地伺服器](#app-尋找本地伺服器) |
-    | 11 | 未指派命令 | 請檢查 URI "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 格式是否正確, 此錯誤表示您未指定 `<命令>` |
-    | 12 | 無效的命令 | 請檢查 URI "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 中的 `<命令>` 是否正確,<br>如: App 登錄 [`https://dev.smart-ehome.com/api/login`](#app-登錄取得取得-mqtt-通訊時所需的資訊) |
+    status | 訊息 | 處理措施
+    :---:|:---:|---
+    10 | 無效的伺服器 ID | 請確認您所連接是正確的伺服器, 或是請重新用 [UDP 尋找本地伺服器](#app-尋找本地伺服器)
+    11 | 未指派命令 | 請檢查 URI "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 格式是否正確, 此錯誤表示您未指定 `<命令>`
+    12 | 無效的命令 | 請檢查 URI "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 中的 `<命令>` 是否正確,<br>如: App 登錄 [`https://dev.smart-ehome.com/api/login`](#app-登錄取得取得-mqtt-通訊時所需的資訊-login)
 
 
 ## 客端 UDP 完整範例
