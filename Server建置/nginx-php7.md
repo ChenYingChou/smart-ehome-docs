@@ -1,8 +1,6 @@
 nginx & php7 建置
 ---
 
-參考網站：https://pimylifeup.com/raspberry-pi-nginx/
-
 #### 以 root 權限執行安裝 nginx：
 ```sh
 apt-get update
@@ -12,7 +10,34 @@ apt-get install nginx
 systemctl start nginx
 ```
 
-#### 以 root 權限執行安裝 php7：
+#### 以 root 權限執行安裝 php7.2
+> 註: php7.2 或 php7.0 請選其中之一安裝即可 \
+> 參考: [Raspberry Pi Dev Setup with Nginx + PHP7](https://getgrav.org/blog/raspberrypi-nginx-php7-dev)
+
+```sh
+echo "deb http://mirrordirector.raspbian.org/raspbian/ buster main contrib non-free rpi"  > /etc/apt/sources.list.d/10-buster.list
+
+cat > /etc/apt/preferences.d/10-buster <<< _EOT_
+Package: *
+Pin: release n=stretch
+Pin-Priority: 900
+
+Package: *
+Pin: release n=buster
+Pin-Priority: 750
+_EOT_
+apt-get update
+apt-get install -t buster php7.2 php7.2-curl php7.2-gd php7.2-fpm php7.2-cli php7.2-opcache php7.2-mbstring php7.2-xml php7.2-zip
+apt-get install php-pear
+apt-get install php7.2-dev
+pecl channel-update pecl.php.net
+pecl install apcu
+```
+
+#### 以 root 權限執行安裝 php7.0：
+> 註: php7.2 或 php7.0 請選其中之一安裝即可 \
+> 參考: [Raspberry Pi NGINX: Build your own Web Server](https://pimylifeup.com/raspberry-pi-nginx/)
+
 ```sh
 echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi" >> /etc/apt/sources.list
 cat >> /etc/apt/preferences <<< _EOT_
