@@ -261,7 +261,7 @@ App → 伺服器 | `to/$YS/<cid>`
 
 方向 | MQTT 主題
 :---:|----
-App → 通訊模組 | `to/<mid>`
+App → 通訊模組 | `to/<mid>/<cid>`
 
 ```js
 {
