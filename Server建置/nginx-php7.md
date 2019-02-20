@@ -11,13 +11,12 @@ systemctl start nginx
 ```
 
 #### 以 root 權限執行安裝 php7.2
-> 註: php7.2 或 php7.0 請選其中之一安裝即可 \
 > 參考: [Raspberry Pi Dev Setup with Nginx + PHP7](https://getgrav.org/blog/raspberrypi-nginx-php7-dev)
 
 ```sh
 echo "deb http://mirrordirector.raspbian.org/raspbian/ buster main contrib non-free rpi"  > /etc/apt/sources.list.d/10-buster.list
 
-cat > /etc/apt/preferences.d/10-buster <<< _EOT_
+cat > /etc/apt/preferences.d/10-buster << '_EOT_'
 Package: *
 Pin: release n=stretch
 Pin-Priority: 900
@@ -34,25 +33,9 @@ pecl channel-update pecl.php.net
 pecl install apcu
 ```
 
-#### 以 root 權限執行安裝 php7.0：
-> 註: php7.2 或 php7.0 請選其中之一安裝即可 \
-> 參考: [Raspberry Pi NGINX: Build your own Web Server](https://pimylifeup.com/raspberry-pi-nginx/)
-
-```sh
-echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi" >> /etc/apt/sources.list
-cat >> /etc/apt/preferences <<< _EOT_
-
-Package: *
-Pin: release n=jessie
-Pin-Priority: 600
-_EOT_
-apt-get update
-apt-get install -t stretch php7.0-fpm
-```
-
 #### 擴充系統預設 I/O handles
 ```sh
-cat > /etc/security/limits.d/99-nofile.conf << _EOT_
+cat > /etc/security/limits.d/99-nofile.conf << '_EOT_'
 *               hard    nofile          51200
 *               soft    nofile          51200
 _EOT_
@@ -60,7 +43,8 @@ _EOT_
 
 #### nginx 設定
 ```sh
-cat > /etc/nginx/expires << _EOT_
+cd /etc/nginx
+cat > expires << '_EOT_'
     location ~* \.(ico|css|js|gif|jpeg|jpg|png|woff|ttf|otf|svg|woff2|eot)$ {
         expires 30d;
         access_log off;
@@ -69,112 +53,65 @@ cat > /etc/nginx/expires << _EOT_
     }
 _EOT_
 
-cat > /etc/nginx/fastcgi.conf << _EOT_
-fastcgi_param  SCRIPT_FILENAME    $document_root$fastcgi_script_name;
-fastcgi_param  QUERY_STRING       $query_string;
-fastcgi_param  REQUEST_METHOD     $request_method;
-fastcgi_param  CONTENT_TYPE       $content_type;
-fastcgi_param  CONTENT_LENGTH     $content_length;
+patch fastcgi.conf << '_EOT_'
+--- fastcgi.conf        2018-11-07 13:40:42.000000000 +0800
++++ fastcgi.conf.dpkg-old       2017-12-02 03:30:21.130014475 +0800
+@@ -6,6 +6,7 @@
+ fastcgi_param  CONTENT_LENGTH     $content_length;
 
-fastcgi_param  SCRIPT_NAME        $fastcgi_script_name;
-fastcgi_param  PATH_INFO          $fastcgi_path_info;
-fastcgi_param  REQUEST_URI        $request_uri;
-fastcgi_param  DOCUMENT_URI       $document_uri;
-fastcgi_param  DOCUMENT_ROOT      $document_root;
-fastcgi_param  SERVER_PROTOCOL    $server_protocol;
-fastcgi_param  REQUEST_SCHEME     $scheme;
-fastcgi_param  HTTPS              $https if_not_empty;
-
-fastcgi_param  GATEWAY_INTERFACE  CGI/1.1;
-fastcgi_param  SERVER_SOFTWARE    nginx/$nginx_version;
-
-fastcgi_param  REMOTE_ADDR        $remote_addr;
-fastcgi_param  REMOTE_PORT        $remote_port;
-fastcgi_param  SERVER_ADDR        $server_addr;
-fastcgi_param  SERVER_PORT        $server_port;
-fastcgi_param  SERVER_NAME        $server_name;
-
-# PHP only, required if PHP was built with --enable-force-cgi-redirect
-fastcgi_param  REDIRECT_STATUS    200;
+ fastcgi_param  SCRIPT_NAME        $fastcgi_script_name;
++fastcgi_param  PATH_INFO          $fastcgi_path_info;
+ fastcgi_param  REQUEST_URI        $request_uri;
+ fastcgi_param  DOCUMENT_URI       $document_uri;
+ fastcgi_param  DOCUMENT_ROOT      $document_root;
 _EOT_
 
-cat > /etc/nginx/php.conf << _EOT_
+patch fastcgi_params << '_EOT_'
+--- fastcgi_params  2018-11-07 13:40:42.000000000 +0800
++++ fastcgi_params.dpkg-old 2017-12-02 03:37:46.678023454 +0800
+@@ -5,6 +5,7 @@
+ fastcgi_param  CONTENT_LENGTH     $content_length;
+
+ fastcgi_param  SCRIPT_NAME        $fastcgi_script_name;
++fastcgi_param  PATH_INFO          $fastcgi_path_info;
+ fastcgi_param  REQUEST_URI        $request_uri;
+ fastcgi_param  DOCUMENT_URI       $document_uri;
+ fastcgi_param  DOCUMENT_ROOT      $document_root;
+_EOT_
+
+cat > php.conf << '_EOT_'
     # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
     #
     location ~ ^(.+?\.php)(/|$) {
        #try_files $fastcgi_script_name  =404; # --> clear $fastcgi_path_info
         if (!-f $document_root$fastcgi_script_name) { return 404; }
        #fastcgi_pass   127.0.0.1:9000;
-        fastcgi_pass   unix:/run/php-fpm/php-fpm.sock;
+        fastcgi_pass   unix:/run/php/php7.2-fpm.sock;
         fastcgi_index  index.php;
         fastcgi_split_path_info         ^(.+?\.php)($|/.*$);
-        fastcgi_param  PHP_ADMIN_VALUE  "open_basedir=/www:/data/mq-data";
+        fastcgi_param  PHP_ADMIN_VALUE  "open_basedir=/www:/data/oisp";
         include        fastcgi.conf;
     }
 _EOT_
 
-cat > /etc/nginx/nginx.conf << _EOT_
-user nginx;
-worker_processes auto;
-error_log /var/log/nginx/error.log;
-pid /run/nginx.pid;
+patch -l nginx.conf << '_EOT_'
+--- nginx.conf  2018-11-07 13:40:42.000000000 +0800
++++ nginx.conf.dpkg-old 2019-02-20 14:21:27.225859679 +0800
+@@ -49,9 +49,11 @@
+	gzip_disable "msie6";
 
-# setsebool -P httpd_setrlimit=1
-worker_rlimit_nofile 51200;
-
-# Load dynamic modules. See /usr/share/nginx/README.dynamic.
-include /usr/share/nginx/modules/*.conf;
-
-events {
-    worker_connections 16384;
-    multi_accept on;
-}
-
-http {
-    log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
-                      '$status $body_bytes_sent "$http_referer" '
-                      '"$http_user_agent" "$http_x_forwarded_for"';
-
-    log_format scripts '$document_root$fastcgi_script_name$fastcgi_path_info ?$query_string > $request';
-
-    access_log  /var/log/nginx/access.log  main;
-
-    client_header_timeout     12; # 1m
-    client_body_timeout       12; # 1m
-    send_timeout              10; # 1m
-    keepalive_timeout         15;
-    reset_timedout_connection on;
-
-    open_file_cache           max=1024 inactive=60s;
-    open_file_cache_valid     30s;
-    open_file_cache_min_uses  5;
-    open_file_cache_errors    off;
-
-    sendfile                  on;
-    tcp_nopush                on;
-    tcp_nodelay               on;
-    types_hash_max_size       2048;
-
-    gzip                      on;
-    gzip_vary                 on;
-    gzip_min_length           1280;
-    gzip_types                text/plain text/css application/json application/javascript application/x-javascript text/xml application/xml application/xml+rss text/javascript;
-    gzip_proxied              no-store no-cache private expired auth;
-    gzip_static               on;
-    gzip_disable              "MSIE [1-6]\.(?!.*SV1)";
-    gzip_http_version         1.0;
-
-    include             /etc/nginx/mime.types;
-    default_type        application/octet-stream;
-
-    # Load modular configuration files from the /etc/nginx/conf.d directory.
-    # See http://nginx.org/en/docs/ngx_core_module.html#include
-    # for more information.
-    include /etc/nginx/conf.d/*.conf;
-}
+	# gzip_vary on;
+-	# gzip_proxied any;
++	gzip_min_length 1280;
++	gzip_proxied no-store no-cache private expired auth;
+	# gzip_comp_level 6;
+	# gzip_buffers 16 8k;
++	gzip_static on;
+	# gzip_http_version 1.1;
+	# gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
 _EOT_
 
-cat > /etc/nginx/conf.d/default.conf << _EOT_
+cat > conf.d/default.conf << '_EOT_'
 #
 # The default server
 #
@@ -309,9 +246,9 @@ _EOT_
 ```sh
 cd /etc
 yum install -y patch
-patch php.ini << _EOT_
---- php.ini	2017-02-18 22:49:58.000000000 +0800
-+++ /tmp/php.ini	2018-02-02 13:24:33.564607146 +0800
+patch php.ini << '_EOT_'
+--- php.ini 2017-02-18 22:49:58.000000000 +0800
++++ /tmp/php.ini    2018-02-02 13:24:33.564607146 +0800
 @@ -302,7 +302,7 @@
  ; It receives a comma-delimited list of function names. This directive is
  ; *NOT* affected by whether Safe Mode is turned On or Off.
@@ -359,9 +296,9 @@ patch php.ini << _EOT_
  ;date.default_latitude = 31.7667
 _EOT_
 
-patch www.conf << _EOT_
---- www.conf.orig	2018-02-02 18:25:51.970702632 +0800
-+++ www.conf	2018-02-02 18:28:00.118139065 +0800
+patch www.conf << '_EOT_'
+--- www.conf.orig   2018-02-02 18:25:51.970702632 +0800
++++ www.conf    2018-02-02 18:28:00.118139065 +0800
 @@ -23,7 +23,7 @@
  ; RPM: apache Choosed to be able to access some dir as httpd
  user = apache
