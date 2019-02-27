@@ -1,16 +1,33 @@
 ## RabbitMQ-Server 建置
 
-
 ### Raspberry Pi 安裝
 
 參考網站：https://tecadmin.net/install-rabbitmq-server-on-ubuntu/
 
 #### 以 root 權限執行安裝
 ```sh
-echo 'deb http://www.rabbitmq.com/debian/ testing main' | tee /etc/apt/sources.list.d/rabbitmq.list
-wget -O- https://www.rabbitmq.com/rabbitmq-release-signing-key.asc | apt-key add -
+apt-key adv --keyserver "hkps.pool.sks-keyservers.net" --recv-keys "0x6B73A36E6026DFCA"
+wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo apt-key add -
+apt-get install -y apt-transport-https
+
+cat > /etc/apt/sources.list.d/bintray.rabbitmq.list << '_EOT_'
+# This repository provides RabbitMQ packages
+# See below for supported distribution and component values
+deb https://dl.bintray.com/rabbitmq-erlang/debian stretch erlang
+deb https://dl.bintray.com/rabbitmq/debian stretch main
+_EOT_
+
+cat > /etc/apt/preferences.d/erlang << '_EOT_'
+# /etc/apt/preferences.d/erlang
+Package: erlang*
+Pin: release o=Bintray
+#Pin: version 1:21.2.5-1
+Pin-Priority: 1000
+_EOT_
+
+apt-cache policy
 apt-get update
-apt-get install rabbitmq-server
+apt-get install -y erlang-nox rabbitmq-server
 ```
 
 ---
@@ -157,22 +174,51 @@ chmod 750 /data/mq-data /data/mq-data/db /data/mq-data/www
 資料庫中密碼是採用 CRYPT_BLOWFISH 加密, PHP 函數為 `password_hash('密碼', PASSWORD_BCRYPT)`, 請將下面對應的密碼欄位 ('`$2y$10...`') 換置掉。
 
 ```sql
--- sqlite3 /data/mq-data/db/oisp.db << _EOT_
+--# sqlite3 /data/mq-data/db/oisp.db << '_EOT_'
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
-CREATE TABLE users (
-    id varchar(16) not null primary key,
-    pwd varchar(60) not null,   -- php: password_hash($password,PASSWORD_BCRYPT);
-    token varchar(32) not null default '',
-    email varchar(200) not null default '',
-    mobile varchar(20) not null default '',
-    policy varchar(200) not null default '',
-    is_active bool not null default false
+
+CREATE TABLE IF NOT EXISTS "auth_code" (
+    `code`      text NOT NULL,
+    `at_time`   text NOT NULL,
+    PRIMARY KEY(`code`)
 );
-INSERT INTO "users" VALUES('admin','$2y$10$W0z1.TCjcROTAjqVp/0GwOfMn6DBKTTJ91p4sUjbq8YvJTTS./xC2','4077d9941ce44ff8a1b6cdb74b40c196','service@example.com',NULL,'management policymaker monitoring administrator','true');
-INSERT INTO "users" VALUES('tony','$2y$10$NrWVLc.Rd791nPfGvZ1d2O23c1KNiXc3p9qTqI0Y3PZ/YCvXJu1PJ','c218eccf0c5349753fb07e5862204086','tonychen@example.com',NULL,'','false');
+
+CREATE TABLE IF NOT EXISTS "reg_users_map" (
+    `userid`    text NOT NULL,
+    `device`    text NOT NULL,
+    `id`        text NOT NULL UNIQUE,       -- 5 bytes: A~E x 10^4
+    PRIMARY KEY(`userid`, `device`)
+);
+
+CREATE TABLE IF NOT EXISTS "reg_users" (
+    `userid`    text NOT NULL,
+    `name`      text NOT NULL,
+    `is_admin`  int NOT NULL DEFAULT 0,     -- admin for 1:reg_users, 2:module
+    `reg_time`  text NOT NULL DEFAULT '',
+    `uid`       text NOT NULL UNIQUE,       -- 4 bytes (62|64)^4
+    PRIMARY KEY(`userid`)
+);
+
+CREATE TABLE IF NOT EXISTS "users" (
+    `id`        text NOT NULL,
+    `pwd`       text NOT NULL,   -- php: password_hash($password,PASSWORD_BCRYPT);
+    `email`     text NOT NULL DEFAULT '',
+    `mobile`    text NOT NULL DEFAULT '',
+    `token`     text NOT NULL DEFAULT '',
+    `policy`    text NOT NULL DEFAULT '',
+    `lang`      text NOT NULL DEFAULT 'en',
+    `is_active` int NOT NULL DEFAULT 1,
+    `type`      int NOT NULL DEFAULT 0,     -- 0:system, 1:reg_users, 2:module
+    `uid`       text NOT NULL DEFAULT '',   -- copy from reg_users.uid if type >= 1
+    `os`        text NOT NULL DEFAULT '',   -- 'iOS', 'android', 'web'
+    PRIMARY KEY(`id`)
+);
+
+-- INSERT INTO `reg_users` VALUES('admin', 'Administrator', 2, '', 'admin');
+-- INSERT INTO `users` VALUES('admin','$2y$10$enWbeal3axm.KP15U.cr.xxxxxxxxxxxx/T9MCGl2xxxxxxxxxxxx','service@amma.com.tw','','','management policymaker monitoring administrator','tw',1,0,'','');
 COMMIT;
--- _EOT_
+--# _EOT_
 ```
 
 #### PHP Web 認證及授權範例
