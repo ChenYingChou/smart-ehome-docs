@@ -2,7 +2,9 @@
 
 ### Raspberry Pi 安裝
 
-參考網站：https://tecadmin.net/install-rabbitmq-server-on-ubuntu/
+參考網站:
+1. https://www.rabbitmq.com/install-debian.html
+1. https://tecadmin.net/install-rabbitmq-server-on-ubuntu/
 
 #### 以 root 權限執行安裝
 ```sh
