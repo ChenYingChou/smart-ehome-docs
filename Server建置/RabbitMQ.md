@@ -3,13 +3,14 @@
 ### Raspberry Pi 安裝
 
 參考網站:
-1. https://www.rabbitmq.com/install-debian.html
-1. https://tecadmin.net/install-rabbitmq-server-on-ubuntu/
+* [Erlang/OTP packages for Debian and Ubuntu](https://github.com/rabbitmq/erlang-debian-package/)
+* [Installing on Debian and Ubuntu](https://www.rabbitmq.com/install-debian.html)
 
 #### 以 root 權限執行安裝
 ```sh
 apt-key adv --keyserver "hkps.pool.sks-keyservers.net" --recv-keys "0x6B73A36E6026DFCA"
 wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo apt-key add -
+#wget -O - 'https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc' | sudo apt-key add -
 apt-get install -y apt-transport-https
 
 cat > /etc/apt/sources.list.d/bintray.rabbitmq.list << '_EOT_'
@@ -83,56 +84,223 @@ systemctl enable rabbitmq-server
 systemctl start rabbitmq-server
 ```
 
-#### 啟用 Web 管理及 MQTT/webMQTT 協定
+#### 啟用 WebAdmin/MQTT/webMQTT 及基本帳號權限
 ```sh
-# RabbitMQ: tcp:5672, SSL:5671
-rabbitmq-plugins enable rabbitmq_management       # tcp:15672, SSL:15671
-rabbitmq-plugins enable rabbitmq_mqtt             # tcp:1883 , SSL:8883
-rabbitmq-plugins enable rabbitmq_web_mqtt         # tcp:15675, SSL:15674
-```
+echo "RabbitMQ Setup ..."
 
-#### 下載 rabbitmqadmin
-```sh
-cd /usr/local/bin
-wget http://localhost:15672/cli/rabbitmqadmin
-chmod +x rabbitmqadmin
-```
+PWDSZ1=$(shuf -i 12-30 -n 1)
+PWDSZ2=$(shuf -i 12-30 -n 1)
+echo ""
+echo -n "Enter password for admin: "
+read adminPwd
+[ -z "${adminPwd}" ] && adminPwd=$(< /dev/urandom tr -dc _A-Za-z0-9- | head -c${PWDSZ1})
+[ "${adminPwd::1}" = "-" ] && adminPwd="x${adminPwd}"
 
-#### 設定管理者帳號
-```sh
-rabbitmqctl add_user admin **請換置成你的密碼**
+echo -n "Enter password for oisp: "
+read oispPwd
+[ -z "${oispPwd}" ] && oispPwd=$(< /dev/urandom tr -dc _A-Za-z0-9- | head -c${PWDSZ2})
+[ "${oispPwd::1}" = "-" ] && oispPwd="x${oispPwd}"
+
+[ -f ~/.rabbitmqadmin.conf ] && mv ~/.rabbitmqadmin.conf ~/.rabbitmqadmin.conf.bak
+if [ -f ~/.rabbitmq.pwd ]; then
+    echo -e "\n>>> Remove old users"
+    mv ~/.rabbitmq.pwd ~/.rabbitmq.pwd.bak
+    rabbitmqctl delete_user admin
+    rabbitmqctl delete_user oisp
+fi
+
+echo -e "\n>>> Create ~/.rabbitmqadmin.conf"
+cat > ~/.rabbitmqadmin.conf << _EOT_
+# rabbitmqadmin.conf START
+
+[default]
+hostname = localhost
+port = 15672
+username = admin
+password = ${adminPwd}
+#vhost = /
+#ssl = True
+
+[oisp]
+hostname = localhost
+port = 15672
+username = oisp
+password = ${oispPwd}
+vhost = oisp
+#ssl = True
+
+# rabbitmqadmin.conf END
+_EOT_
+
+echo "adminPwd=\"${adminPwd}\"" > ~/.rabbitmq.pwd
+echo "oispPwd=\"${oispPwd}\"" >> ~/.rabbitmq.pwd
+chmod go-rwx ~/.rabbitmq*
+
+echo -e "\n>>> Enable rabbitmq plugins: web-management, mqtt, web-mqtt, web-auth"
+# RabbitMQ: amqp            # tcp:5672 , SSL:5671
+# rabbitmq_management       # tcp:15672, SSL:15671
+# rabbitmq_mqtt             # tcp:1883 , SSL:8883
+# rabbitmq_web_mqtt         # tcp:15675, SSL:15674
+rabbitmq-plugins enable \
+	rabbitmq_amqp1_0 \
+	rabbitmq_auth_backend_cache \
+	rabbitmq_auth_backend_http \
+	rabbitmq_management \
+	rabbitmq_mqtt \
+	rabbitmq_web_mqtt
+
+echo -e "\n>>> Create vhost: oisp"
+rabbitmqctl add_vhost oisp
+
+echo -e "\n>>> Create user: admin for vhost / and oisp"
+rabbitmqctl add_user admin "${adminPwd}"
 rabbitmqctl set_user_tags admin administrator
 rabbitmqctl set_permissions -p / admin ".*" ".*" ".*"
+rabbitmqctl set_permissions -p oisp admin ".*" ".*" ".*"
+
+echo -e "\n>>> Create user oisp for vhost oisp"
+rabbitmqctl add_user oisp "${oispPwd}"
+rabbitmqctl set_user_tags oisp administrator
+rabbitmqctl set_permissions -p oisp oisp  ".*" ".*" ".*"
+
+if [ ! -x /usr/local/bin/rabbitmqadmin ]; then
+    echo -e "\n>>> Download rabbitmqadmin"
+    wget -O /usr/local/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
+    chmod +x /usr/local/bin/rabbitmqadmin
+fi
+
+#rabbitmqctl add_user user1 user1.password
+#rabbitmqctl set_permissions -p oisp user1 "^mqtt\.from\..*" "^mqtt\.to" "^mqtt\.from"
+
+echo -e "\n>>> Create exchanges mqtt and bcast for vhost oisp"
+rabbitmqadmin -V oisp declare exchange name=mqtt type=topic
+rabbitmqadmin -V oisp declare exchange name=bcast type=fanout
+
+#rabbitmqadmin -N oisp declare binding source=mqtt destination=bcast routing_key="#" destination_type=exchange
+
+echo -e "\n>>> Create policy for vhost oisp"
+#
+# Create policy for MQTT
+#
+rabbitmqctl set_policy -p oisp osvc "^mqtt-subscription-s" \
+    '{"expires":259200000, "max-length-bytes":102400, "message-ttl":30000}' \
+    --priority 1 \
+    --apply-to queues
+
+rabbitmqctl set_policy -p oisp ouser "^mqtt-subscription-u" \
+    '{"expires":150000, "max-length":500, "max-length-bytes":102400}' \
+    --priority 1 \
+    --apply-to queues
+
+echo -e "\n==================="
+echo " RMQ administrator: admin, Password: ${adminPwd}"
+echo "vhost oisp manager: oisp , Password: ${oispPwd}"
 ```
 
 #### 啟用 Web 認證及授權
 ```sh
-rabbitmq-plutins enable rabbitmq_auth_backend_http
-cat > /etc/rabbitmq/rabbitmq.conf << _EOT_
+cat > /etc/rabbitmq/rabbitmq.conf << '_EOT_'
 # rabbitmq.conf
 
+## https://www.rabbitmq.com/logging.html
 log.file.level = error
+#log.connection.level = info
 
-##在鏈中使用兩個後端：首先是內部，然後是HTTP
+## Logging to rabbit amq.rabbitmq.log exchange (can be true or false)
+#log.exchange = true
+
+## Loglevel to log to amq.rabbitmq.log exchange
+#log.exchange.level = info
+
+## 以上 log 可用下列 event 來取代: https://www.rabbitmq.com/event-exchange.html
+##   rabbitmq-plugins enable rabbitmq_event_exchange
+
+## define multiple listeners using listener names
+#listeners.tcp.default = 5672
+#listeners.tcp.other_port = 5673
+#listeners.tcp.other_ip = x.x.x.x
+#listeners.tcp.other2_port = 5674
+#listeners.tcp.other2_ip = x.x.x.x
+## <-->
+#listeners.tcp.1 = :::5672
+#listeners.tcp.2 = :::5673
+#listeners.tcp.3 = :::5674
+
+#[ssl]# listeners.ssl.default            = 5671
+#[ssl]# ssl_options.cacertfile           = /etc/ssl/your-domain/your-domain-www.pem
+#[ssl]# ssl_options.certfile             = /etc/ssl/your-domain/your-domain-www.crt
+#[ssl]# ssl_options.keyfile              = /etc/ssl/your-domain/your-domain.key
+#[ssl]# ssl_options.versions.1           = tlsv1.2
+#[ssl]# ssl_options.versions.2           = tlsv1.1
+#[ssl]# ssl_options.verify               = verify_peer
+#[ssl]# ssl_options.fail_if_no_peer_cert = false
+
+#[ssl]# ## Web Management SSL
+#[ssl]# management.listener.port = 15671
+#[ssl]# management.listener.ssl  = true
+#[ssl]# management.listener.ssl_opts.cacertfile           = /etc/ssl/your-domain/your-domain-www.pem
+#[ssl]# management.listener.ssl_opts.certfile             = /etc/ssl/your-domain/your-domain-www.crt
+#[ssl]# management.listener.ssl_opts.keyfile              = /etc/ssl/your-domain/your-domain.key
+#[ssl]# management.listener.ssl_opts.versions.1           = tlsv1.2
+#[ssl]# management.listener.ssl_opts.versions.2           = tlsv1.1
+#[ssl]# management.listener.ssl_opts.verify               = verify_none
+#[ssl]# management.listener.ssl_opts.fail_if_no_peer_cert = false
+
+## 在鏈中使用多個後端：internal, cache(http)
 auth_backends.1 = internal
-auth_backends.2 = http
+auth_backends.2 = cache
+#auth_backends.3 = http
 
-##認證
-##內置的機制是“普通”，
-##'AMQPLAIN'和'EXTERNAL'可以通過添加其他機制
-##插件。
-##
-##相關文檔指南：http：//rabbitmq.com/authentication.html。
-##
+## 認證相關文檔指南: http://rabbitmq.com/authentication.html
 auth_mechanisms.1 = AMQPLAIN
 auth_mechanisms.2 = PLAIN
 
-#auth_backends.2 = http
-auth_http.http_method	= post
+## Cache setup
+auth_cache.cached_backend = http
+auth_cache.cache_ttl = 1800000          # milliseconds
+
+auth_http.http_method   = post
 auth_http.user_path     = http://localhost:8001/auth/user
 auth_http.vhost_path    = http://localhost:8001/auth/vhost
 auth_http.resource_path = http://localhost:8001/auth/resource
 auth_http.topic_path    = http://localhost:8001/auth/topic
+
+#########
+## MQTT # https://www.rabbitmq.com/mqtt.html
+#########
+mqtt.allow_anonymous  = false
+mqtt.vhost            = oisp
+mqtt.exchange         = mqtt
+
+## 24 hours by default
+#-# mqtt.subscription_ttl = 86400000
+#-# mqtt.prefetch         = 10
+#-# mqtt.listeners.ssl    = none
+
+#[ssl]# mqtt.listeners.ssl.default = 8883
+mqtt.listeners.tcp.default = 1883
+#-# mqtt.tcp_listen_options.backlog = 128
+#-# mqtt.tcp_listen_options.nodelay = true
+
+## define multiple listeners using listener names
+#-# mqtt.listeners.tcp.default = 1883
+#-# #mqtt.listeners.tcp.other2_port = 1884
+#-# #mqtt.listeners.tcp.other3_port = 1885
+## <-->
+#-# mqtt.listeners.tcp.1 = :::1883
+#-# mqtt.listeners.tcp.2 = :::1884
+#-# mqtt.listeners.tcp.3 = :::1885
+
+#############
+## Web-MQTT #
+#############
+web_mqtt.tcp.port       = 15675
+#[ssl]# web_mqtt.ssl.port       = 15674
+#[ssl]# web_mqtt.ssl.backlog    = 1024
+#[ssl]# web_mqtt.ssl.cacertfile = /etc/ssl/your-domain/your-domain-www.pem
+#[ssl]# web_mqtt.ssl.certfile   = /etc/ssl/your-domain/your-domain-www.crt
+#[ssl]# web_mqtt.ssl.keyfile    = /etc/ssl/your-domain/your-domain.key
+#[ssl]# #web_mqtt.ssl.password   = changeme # needed when private key has a passphrase
 _EOT_
 ```
 
@@ -145,31 +313,25 @@ _EOT_
     chown rabbitmq:rabbitmq rabbit.schema
     chmod o-rwx rabbit.schema
     ```
-
-* 編輯 /etc/rabbitmq/rabbitmq.conf，增加新的設定:
-    ```conf
-    ## Logging to rabbit amq.rabbitmq.log exchange (can be true or false)
-    ##
-    log.exchange = true
-
-    ## Loglevel to log to amq.rabbitmq.log exchange
-    ##
-    log.exchange.level = info
-    ```
-
-* 再重啟服務: `service rabbitmq-server restart`
-
+* 或編輯 /etc/rabbitmq/rabbitmq.conf，增加新的設定
+* 重啟服務: `service rabbitmq-server restart`
 
 #### 建立相關目錄及權限設定
 ```sh
-mkdir -p /data/mq-data/db
-mkdir -p /data/mq-data/www/auth
-# ... 建立 sqlite3 資料庫: /data/mq-data/db/oisp.db (如後所述)
-# ... 建立 PHP Web 認證及授權程式: /data/www/auth/index.php (如後所述)
-chown -R root:nginx /data/mq-data
-chown -R apache:nginx /data/mq-data/db      # 允許執行期 php-fpm 讀寫 sqlite 資料庫
-chown -R nginx:nginx /data/mq-data/www      # 允許執行期 php-fpm 讀取(執行) php 程式
-chmod 750 /data/mq-data /data/mq-data/db /data/mq-data/www
+apt-get install -y sqlite3
+umask 0022
+mkdir -p /opt/oisp
+ln -nfs /opt/oisp /
+cd /opt/oisp
+mkdir -p api auth cache db lib modules modules/sys sys udpsvr www www/api www/auth
+# ... 建立 sqlite3 資料庫: /oisp/db/oisp.db (如後所述)
+# ... 建立 PHP Web 認證及授權程式: /oisp/www/auth/index.php (如後所述)
+
+chown -R root:www-data /opt/oisp      # 允許執行期 php-fpm 讀寫 sqlite 資料庫
+chmod 750 /opt/oisp
+cd /opt/oisp
+chmod g+rwx db cache sys modules/*
+find . -name '*.json' | xargs chmod g+w
 ```
 
 #### 建立 sqlite3 資料庫
@@ -224,7 +386,7 @@ COMMIT;
 ```
 
 #### PHP Web 認證及授權範例
-請先依 [nginx-php7](https://github.com/ChenYingChou/smart-ehome-docs/blob/master/Server%E5%BB%BA%E7%BD%AE/nginx-php7.md) 說明建立 Web 及 PHP 執行環境。
+請先依 [nginx-php7](./nginx-php7.md) 說明建立 Web 及 PHP 執行環境。
 
 ```php
 <?php  # /data/mq-data/www/auth/index.php

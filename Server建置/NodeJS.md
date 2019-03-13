@@ -21,6 +21,8 @@ wget -O - https://raw.githubusercontent.com/audstanley/NodeJs-Raspberry-Pi/maste
 sudo node-install -v 10
 # then you will get prompted with which
 # specific version of 10 you wish to install
+
+ln -nfs /opt/nodejs/lib/node_modules /usr/lib/
 ```
 
 #### Raspbian Stretch Desktop 安裝

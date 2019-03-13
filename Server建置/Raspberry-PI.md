@@ -15,13 +15,24 @@ curl -sL\
  https://raw.githubusercontent.com/audstanley/NodeJs-Raspberry-Pi/master/Install-Node.sh \
 | sudo bash
 
-# 指定版本 10 (LTS)
-sudo node-install -v 10
-# then you will get prompted with which
-# specific version of 10 you wish to install
+# 將 /usr/lib/node_modules 指到正確的位置
+ln -nfs /opt/nodejs/lib/node_modules /usr/lib/
+
+# 檢視安裝的版本
+node -v
+
+## 下行指令可選擇指定版本 10 (LTS)
+# sudo node-install -v 10
+## then you will get prompted with which
+## specific version of 10 you wish to install
+
+sudo npm install -g --unsafe-perm axios commander dateformat deep-diff mqtt
 ```
+
+## 安裝 Web Server nginx 及 php
+
+參考 [nginx & php7 建置](./nginx-php7.md)
 
 ## 安裝 RabbitMQ
 
-## 安裝 Web Server 及 php
 
