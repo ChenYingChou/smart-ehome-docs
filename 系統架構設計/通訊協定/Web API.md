@@ -66,7 +66,8 @@
         $encrypted = base64_decode($y);
         $iv = substr($encrypted, 0, 16);
         $encryptedText = substr($encrypted, 16);
-        $text = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $client_key, $encryptedText, 'ctr', $iv);
+        #$text = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $client_key, $encryptedText, 'ctr', $iv);
+        $text = openssl_decrypt($encryptedText, 'aes-128-ctr', $client_key, OPENSSL_RAW_DATA, $iv);
         echo "$text\n";
         // 輸出: 如同前述的 JSON 值
         ```
@@ -940,7 +941,8 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/messages`
         $encrypted = base64_decode($fields[1]);
         $iv = substr($encrypted, 0, 16);
         $encryptedText = substr($encrypted, 16);
-        $text = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $client_key, $encryptedText, 'ctr', $iv);
+        #$text = mcrypt_decrypt(MCRYPT_RIJNDAEL_128, $client_key, $encryptedText, 'ctr', $iv);
+        $text = openssl_decrypt($encryptedText, 'aes-128-ctr', $client_key, OPENSSL_RAW_DATA, $iv);
         echo ">>> text: $text\n";
         break;
     }
