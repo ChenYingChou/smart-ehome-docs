@@ -18,7 +18,7 @@ sudo apt-get install nodejs
 wget -O - https://raw.githubusercontent.com/audstanley/NodeJs-Raspberry-Pi/master/Install-Node.sh | sudo bash
 
 # 指定版本 10 (LTS)
-sudo node-install -v 10
+#sudo node-install -v 10
 # then you will get prompted with which
 # specific version of 10 you wish to install
 
