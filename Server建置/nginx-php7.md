@@ -1,15 +1,27 @@
-nginx & php7 建置
----
+<h2>nginx & php7 建置</h2>
 
-#### 安裝 nginx
+[[TOC]]
+
+### 安裝 nginx
 ```sh
 sudo su -
 # 以下均以 root 權限執行
 
 apt-get install -y nginx
+
+# 擴充系統預設 I/O handles
+cat > /etc/security/limits.d/99-nofile.conf << '_EOT_'
+*               hard    nofile          51200
+*               soft    nofile          51200
+_EOT_
+
+# 預建 OISP Web 目錄
+mkdir -p /opt/oisp/www
+ln -nfs opt/oisp /oisp
+ln -nfs oisp/www /www
 ```
 
-#### 安裝 php7.2
+### 安裝 php7.2
 > 參考: [Raspberry Pi Dev Setup with Nginx + PHP7](https://getgrav.org/blog/raspberrypi-nginx-php7-dev)
 
 ```sh
@@ -25,7 +37,7 @@ Pin: release n=buster
 Pin-Priority: 750
 _EOT_
 apt-get update
-apt-get install -t buster -y php7.2 php7.2-curl php7.2-gd php7.2-fpm php7.2-cli php7.2-opcache php7.2-mbstring php7.2-xml php7.2-zip php7.2-dev
+apt-get install -t buster -y php7.2 php7.2-curl php7.2-gd php7.2-fpm php7.2-cli php7.2-opcache php7.2-mbstring php7.2-xml php7.2-zip php7.2-sqlite3 php7.2-dev
 apt-get install -y php-pear
 pecl channel-update pecl.php.net
 sed -i 's/v_att_list = & func_get_args/v_att_list = func_get_args/' /usr/share/php/Archive/Tar.php
@@ -98,15 +110,7 @@ _EOT_
 ln -nfs /etc/php/7.2/mods-available/apcu.ini /etc/php/7.2/fpm/conf.d/40-apcu.ini
 ```
 
-#### 擴充系統預設 I/O handles
-```sh
-cat > /etc/security/limits.d/99-nofile.conf << '_EOT_'
-*               hard    nofile          51200
-*               soft    nofile          51200
-_EOT_
-```
-
-#### nginx 設定
+### nginx 設定
 ```sh
 echo "NGINX Setup ..."
 cd /etc/nginx
@@ -160,7 +164,7 @@ cat > php.conf << '_EOT_'
         fastcgi_pass   unix:/run/php/php7.2-fpm.sock;
         fastcgi_index  index.php;
         fastcgi_split_path_info         ^(.+?\.php)($|/.*$);
-        fastcgi_param  PHP_ADMIN_VALUE  "open_basedir=/www:/data/oisp";
+        fastcgi_param  PHP_ADMIN_VALUE  "open_basedir=/www:/oisp";
         include        fastcgi.conf;
     }
 _EOT_
@@ -183,17 +187,23 @@ patch -l -s -N -r - nginx.conf << '_EOT_'
 	# gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
 _EOT_
 
-echo ">>> Create sites-available/default.conf"
-cat > sites-available/default.conf << '_EOT_'
+echo ">>> Create sites-available/default"
+cat > sites-available/default << '_EOT_'
 # Default server configuration
 server {
 	listen 80 default_server;
 	listen [::]:80 default_server;
 	server_tokens off;
 
+#-#	listen 443 ssl http2;
 #-#	include ssl.conf;
 
-	root /var/www/html;
+	# disable content embedded in a frame or iframe
+	add_header X-Frame-Options SAMEORIGIN; # DENY | SAMEORIGIN | ALLOW-FROM uri
+	#add_header Access-Control-Allow-Origin *;
+	#add_header Access-Control-Allow-Credentials true;
+
+	root /oisp/www;
 	index index.php index.html index.htm;
 	server_name _;
 
@@ -201,6 +211,18 @@ server {
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
 		try_files $uri $uri/ =404;
+	}
+
+	location /api {
+		index		index.php;
+		fastcgi_split_path_info ^(/api(?:/.+?\.php)?)($|/.*$);
+		try_files	$uri $uri/ /api/index.php$fastcgi_path_info?$query_string;
+	}
+
+	location /auth {
+		index		index.php;
+		fastcgi_split_path_info ^(/auth(?:/.+?\.php)?)($|/.*$);
+		try_files	$uri $uri/ /auth/index.php$fastcgi_path_info?$query_string;
 	}
 
 	# deny access to .htaccess files, if Apache's document root
@@ -221,10 +243,10 @@ server {
 _EOT_
 
 # 重啟 nginx 服務
-nginx -t && service nginx restart
+nginx -t && service nginx reload
 ```
 
-#### php 設定
+### php 設定
 ```sh
 echo "PHP Setup ..."
 cd /etc/php/7.2/fpm

@@ -1,4 +1,10 @@
-## RabbitMQ-Server 建置
+<h2>RabbitMQ-Server 建置</h2>
+
+```sh
+# 以下所有安裝或設定請用 root 身份執行
+sudo su -
+```
+[[TOC]]
 
 ### Raspberry Pi 安裝
 
@@ -6,11 +12,10 @@
 * [Erlang/OTP packages for Debian and Ubuntu](https://github.com/rabbitmq/erlang-debian-package/)
 * [Installing on Debian and Ubuntu](https://www.rabbitmq.com/install-debian.html)
 
-#### 以 root 權限執行安裝
 ```sh
 apt-key adv --keyserver "hkps.pool.sks-keyservers.net" --recv-keys "0x6B73A36E6026DFCA"
 wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc" | sudo apt-key add -
-#wget -O - 'https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc' | sudo apt-key add -
+wget -O - 'https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc' | sudo apt-key add -
 apt-get install -y apt-transport-https
 
 cat > /etc/apt/sources.list.d/bintray.rabbitmq.list << '_EOT_'
@@ -30,7 +35,7 @@ _EOT_
 
 apt-cache policy
 apt-get update
-apt-get install -y erlang-nox rabbitmq-server
+apt-get install -t buster -y erlang-nox rabbitmq-server
 ```
 
 ---
@@ -70,7 +75,7 @@ yum install -y librabbitmq-last librabbitmq-last-devel
 yum install -y librabbitmq-last librabbitmq-devel
 ```
 
----
+### RabbitMQ 設定及更新
 
 #### 設定系統開機自動啟動 RabbitMQ
 ```sh
@@ -86,28 +91,36 @@ systemctl start rabbitmq-server
 
 #### 啟用 WebAdmin/MQTT/webMQTT 及基本帳號權限
 ```sh
+#!/bin/bash
+
 echo "RabbitMQ Setup ..."
 
-PWDSZ1=$(shuf -i 12-30 -n 1)
-PWDSZ2=$(shuf -i 12-30 -n 1)
-echo ""
-echo -n "Enter password for admin: "
-read adminPwd
-[ -z "${adminPwd}" ] && adminPwd=$(< /dev/urandom tr -dc _A-Za-z0-9- | head -c${PWDSZ1})
-[ "${adminPwd::1}" = "-" ] && adminPwd="x${adminPwd}"
-
-echo -n "Enter password for oisp: "
-read oispPwd
-[ -z "${oispPwd}" ] && oispPwd=$(< /dev/urandom tr -dc _A-Za-z0-9- | head -c${PWDSZ2})
-[ "${oispPwd::1}" = "-" ] && oispPwd="x${oispPwd}"
-
-[ -f ~/.rabbitmqadmin.conf ] && mv ~/.rabbitmqadmin.conf ~/.rabbitmqadmin.conf.bak
 if [ -f ~/.rabbitmq.pwd ]; then
-    echo -e "\n>>> Remove old users"
-    mv ~/.rabbitmq.pwd ~/.rabbitmq.pwd.bak
+    . ~/.rabbitmq.pwd
+    echo -e "\n>>> Remove old users ... please ignore the error)"
     rabbitmqctl delete_user admin
     rabbitmqctl delete_user oisp
 fi
+
+if [ -z "${adminPwd}" -o -z "${oispPwd}" ]; then
+    PWDSZ1=$(shuf -i 12-30 -n 1)
+    PWDSZ2=$(shuf -i 12-30 -n 1)
+    echo ""
+    echo -n "Enter password for admin: "
+    read adminPwd
+    [ -z "${adminPwd}" ] && adminPwd=$(< /dev/urandom tr -dc _A-Za-z0-9- | head -c${PWDSZ1})
+    [ "${adminPwd::1}" = "-" ] && adminPwd="x${adminPwd}"
+
+    echo -n "Enter password for oisp: "
+    read oispPwd
+    [ -z "${oispPwd}" ] && oispPwd=$(< /dev/urandom tr -dc _A-Za-z0-9- | head -c${PWDSZ2})
+    [ "${oispPwd::1}" = "-" ] && oispPwd="x${oispPwd}"
+
+    echo "adminPwd=\"${adminPwd}\"" > ~/.rabbitmq.pwd
+    echo "oispPwd=\"${oispPwd}\"" >> ~/.rabbitmq.pwd
+fi
+
+[ -f ~/.rabbitmqadmin.conf ] && mv ~/.rabbitmqadmin.conf ~/.rabbitmqadmin.conf.bak
 
 echo -e "\n>>> Create ~/.rabbitmqadmin.conf"
 cat > ~/.rabbitmqadmin.conf << _EOT_
@@ -132,8 +145,6 @@ vhost = oisp
 # rabbitmqadmin.conf END
 _EOT_
 
-echo "adminPwd=\"${adminPwd}\"" > ~/.rabbitmq.pwd
-echo "oispPwd=\"${oispPwd}\"" >> ~/.rabbitmq.pwd
 chmod go-rwx ~/.rabbitmq*
 
 echo -e "\n>>> Enable rabbitmq plugins: web-management, mqtt, web-mqtt, web-auth"
@@ -163,10 +174,10 @@ rabbitmqctl add_user oisp "${oispPwd}"
 rabbitmqctl set_user_tags oisp administrator
 rabbitmqctl set_permissions -p oisp oisp  ".*" ".*" ".*"
 
-if [ ! -x /usr/local/bin/rabbitmqadmin ]; then
+if [ ! -x /usr/bin/rabbitmqadmin ]; then
     echo -e "\n>>> Download rabbitmqadmin"
-    wget -O /usr/local/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
-    chmod +x /usr/local/bin/rabbitmqadmin
+    wget -O /usr/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
+    chmod +x /usr/bin/rabbitmqadmin
 fi
 
 #rabbitmqctl add_user user1 user1.password
@@ -195,11 +206,10 @@ rabbitmqctl set_policy -p oisp ouser "^mqtt-subscription-u" \
 echo -e "\n==================="
 echo " RMQ administrator: admin, Password: ${adminPwd}"
 echo "vhost oisp manager: oisp , Password: ${oispPwd}"
-```
 
-#### 啟用 Web 認證及授權
-```sh
-cat > /etc/rabbitmq/rabbitmq.conf << '_EOT_'
+if [ ! -f /etc/rabbitmq/rabbitmq.conf ]; then
+    # 啟用 Web 認證及授權
+    cat > /etc/rabbitmq/rabbitmq.conf << '_EOT_'
 # rabbitmq.conf
 
 ## https://www.rabbitmq.com/logging.html
@@ -302,6 +312,10 @@ web_mqtt.tcp.port       = 15675
 #[ssl]# web_mqtt.ssl.keyfile    = /etc/ssl/your-domain/your-domain.key
 #[ssl]# #web_mqtt.ssl.password   = changeme # needed when private key has a passphrase
 _EOT_
+
+    echo -e "\nRestart rabbitmq-server ..."
+    service rabbitmq-server restart
+fi
 ```
 
 #### 每次更新版本
@@ -316,9 +330,12 @@ _EOT_
 * 或編輯 /etc/rabbitmq/rabbitmq.conf，增加新的設定
 * 重啟服務: `service rabbitmq-server restart`
 
-#### 建立相關目錄及權限設定
+### OISP 初始化目錄及設定
+
+#### 建立目錄及權限設定
 ```sh
 apt-get install -y sqlite3
+
 umask 0022
 mkdir -p /opt/oisp
 ln -nfs /opt/oisp /
@@ -327,11 +344,40 @@ mkdir -p api auth cache db lib modules modules/sys sys udpsvr www www/api www/au
 # ... 建立 sqlite3 資料庫: /oisp/db/oisp.db (如後所述)
 # ... 建立 PHP Web 認證及授權程式: /oisp/www/auth/index.php (如後所述)
 
-chown -R root:www-data /opt/oisp      # 允許執行期 php-fpm 讀寫 sqlite 資料庫
-chmod 750 /opt/oisp
+chown -R pi:pi /opt/oisp      # 允許執行期 php-fpm 讀寫 sqlite 資料庫
+chmod 751 /opt/oisp
 cd /opt/oisp
-chmod g+rwx db cache sys modules/*
-find . -name '*.json' | xargs chmod g+w
+chmod 755 *
+chmod o-rwx modules sys udpsvr
+chmod g+rwx db cache
+chgrp www-data db cache
+chown www-data:pi db/*.db
+chmod g+w db/*.db
+find . -name '*.json' | xargs -r chmod g+w
+
+RMQ_AUTH="/etc/nginx/sites-available/rabbitmq-auth"
+if [ ! -f ${RMQ_AUTH} ]; then
+    cat > ${RMQ_AUTH} << '_EOT_'
+# RabbitMQ authentication & authorisation
+server {
+    listen 127.0.0.1:8001 default_server;
+
+    access_log off;
+   #error_log off;
+
+    location /auth {
+        root        /oisp/www;
+        index       index.php;
+        fastcgi_split_path_info ^(/auth(?:/.+?\.php)?)($|/.*$);
+        try_files   $uri $uri/ /auth/index.php$fastcgi_path_info?$query_string;
+        include     php.conf;
+    }
+}
+_EOT_
+    ln -nfs ${RMQ_AUTH} /etc/nginx/sites-enabled/
+    # 重啟 nginx 服務
+    nginx -t && service nginx reload
+fi
 ```
 
 #### 建立 sqlite3 資料庫
@@ -385,7 +431,7 @@ COMMIT;
 --# _EOT_
 ```
 
-#### PHP Web 認證及授權範例
+### PHP Web 認證及授權範例
 請先依 [nginx-php7](./nginx-php7.md) 說明建立 Web 及 PHP 執行環境。
 
 ```php
