@@ -193,12 +193,12 @@ echo -e "\n>>> Create policy for vhost oisp"
 #
 # Create policy for MQTT
 #
-rabbitmqctl set_policy -p oisp osvc "^mqtt-subscription-s" \
+rabbitmqctl set_policy -p oisp osvc "^mqtt-subscription-2:" \
     '{"expires":259200000, "max-length-bytes":102400, "message-ttl":30000}' \
     --priority 1 \
     --apply-to queues
 
-rabbitmqctl set_policy -p oisp ouser "^mqtt-subscription-u" \
+rabbitmqctl set_policy -p oisp ouser "^mqtt-subscription-1:" \
     '{"expires":150000, "max-length":500, "max-length-bytes":102400}' \
     --priority 1 \
     --apply-to queues

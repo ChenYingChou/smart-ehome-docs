@@ -21,7 +21,7 @@ ln -nfs opt/oisp /oisp
 ln -nfs oisp/www /www
 ```
 
-### 安裝 php7.2
+### 安裝 php7.3
 > 參考: [Raspberry Pi Dev Setup with Nginx + PHP7](https://getgrav.org/blog/raspberrypi-nginx-php7-dev)
 
 ```sh
@@ -37,12 +37,12 @@ Pin: release n=buster
 Pin-Priority: 750
 _EOT_
 apt-get update
-apt-get install -t buster -y php7.2 php7.2-curl php7.2-gd php7.2-fpm php7.2-cli php7.2-opcache php7.2-mbstring php7.2-xml php7.2-zip php7.2-sqlite3 php7.2-dev
+apt-get install -t buster -y php7.3 php7.3-curl php7.3-gd php7.3-fpm php7.3-cli php7.3-opcache php7.3-mbstring php7.3-xml php7.3-zip php7.3-sqlite3 php7.3-dev
 apt-get install -y php-pear
 pecl channel-update pecl.php.net
 sed -i 's/v_att_list = & func_get_args/v_att_list = func_get_args/' /usr/share/php/Archive/Tar.php
 pecl install apcu
-cat > /etc/php/7.2/mods-available/apcu.ini << '_EOT_'
+cat > /etc/php/7.3/mods-available/apcu.ini << '_EOT_'
 ; Enable APCu extension module
 extension = apcu.so
 
@@ -107,7 +107,7 @@ apc.mmap_file_mask=/tmp/apc.XXXXXX
 ;	order to exclude it from the core file
 ;apc.coredump_unmap=0
 _EOT_
-ln -nfs /etc/php/7.2/mods-available/apcu.ini /etc/php/7.2/fpm/conf.d/40-apcu.ini
+ln -nfs /etc/php/7.3/mods-available/apcu.ini /etc/php/7.3/fpm/conf.d/40-apcu.ini
 ```
 
 ### nginx 設定
@@ -161,10 +161,10 @@ cat > php.conf << '_EOT_'
        #try_files $fastcgi_script_name  =404; # --> clear $fastcgi_path_info
         if (!-f $document_root$fastcgi_script_name) { return 404; }
        #fastcgi_pass   127.0.0.1:9000;
-        fastcgi_pass   unix:/run/php/php7.2-fpm.sock;
+        fastcgi_pass   unix:/run/php/php7.3-fpm.sock;
         fastcgi_index  index.php;
         fastcgi_split_path_info         ^(.+?\.php)($|/.*$);
-        fastcgi_param  PHP_ADMIN_VALUE  "open_basedir=/www:/oisp";
+        fastcgi_param  PHP_ADMIN_VALUE  "open_basedir=/oisp";
         include        fastcgi.conf;
     }
 _EOT_
@@ -172,7 +172,7 @@ _EOT_
 echo ">>> Patch nginx.conf"
 patch -l -s -N -r - nginx.conf << '_EOT_'
 --- nginx.conf~	2018-11-07 13:40:42.000000000 +0800
-+++ nginx.conf	2019-02-20 14:21:27.225859679 +0800
++++ nginx.conf	2019-02-20 14:21:23.525859679 +0800
 @@ -49,9 +49,11 @@
 	gzip_disable "msie6";
 
@@ -249,7 +249,7 @@ nginx -t && service nginx reload
 ### php 設定
 ```sh
 echo "PHP Setup ..."
-cd /etc/php/7.2/fpm
+cd /etc/php/7.3/fpm
 
 echo ">>> Patch php.ini"
 patch -s -N -r - php.ini << '_EOT_'
@@ -287,6 +287,22 @@ patch -s -N -r - pool.d/www.conf << '_EOT_'
 +php_admin_value[memory_limit] = 64M
 _EOT_
 
+echo ">>> Patch /lib/systemd/system/php7.3-fpm.service"
+patch -s -N -r - /lib/systemd/system/php7.3-fpm.service << '_EOT_'
+--- php7.3-fpm.service~	2019-02-08 23:05:54.000000000 +0800
++++ php7.3-fpm.service	2019-03-18 21:14:08.065213667 +0800
+@@ -8,6 +8,8 @@
+ PIDFile=/run/php/php7.3-fpm.pid
+ ExecStart=/usr/sbin/php-fpm7.3 --nodaemonize --fpm-config /etc/php/7.3/fpm/php-fpm.conf
+ ExecReload=/bin/kill -USR2 $MAINPID
++Restart=on-failure
++RestartSec=15
+
+ [Install]
+ WantedBy=multi-user.target
+_EOT_
+
 # 重啟 php-fpm 服務
-service php7.2-fpm restart
+systemctl daemo-reload
+service php7.3-fpm restart
 ```
