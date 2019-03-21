@@ -29,8 +29,22 @@
 					"icon":"", 		//顯示圖示
 					"sort":"",
 					"token":"",	
-					"uiid":""		//使用的UI樣式
-					},
+					"uiid":"",		//使用的UI樣式
+					"video":[       
+						{
+						 "name":"",
+						 "url":"",
+						 "user":"",
+						 "pwd":""
+						},
+						{
+						 "name":"",
+						 "url":"",
+						 "user":"",
+						 "pwd":""
+						}
+					]
+				},
 				"homeid":{
 					"name":"",
 					"icon":"",

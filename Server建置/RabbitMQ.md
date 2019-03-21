@@ -93,32 +93,31 @@ systemctl start rabbitmq-server
 ```sh
 #!/bin/bash
 
+read_password() {
+    [ -z "$1" ] && return
+    local pwdsz=$(shuf -i 12-30 -n 1)
+    local password
+    echo ""
+    echo -n "Enter password for $1: "
+    read password
+    [ -z "${password}" ] && password=$(< /dev/urandom tr -dc _A-Za-z0-9- | head -c${pwdsz})
+    [ "$(expr substr "$password" 1 1)" = "-" ] && password="x${password}"
+    eval $1Pwd="$password"
+}
+
 echo "RabbitMQ Setup ..."
 
-if [ -f ~/.rabbitmq.pwd ]; then
-    . ~/.rabbitmq.pwd
-    echo -e "\n>>> Remove old users ... please ignore the error)"
-    rabbitmqctl delete_user admin
-    rabbitmqctl delete_user oisp
-fi
+[ -f ~/.rabbitmq.pwd ] && . ~/.rabbitmq.pwd
+echo -e "\n>>> Remove old users ... please ignore the errors"
+rabbitmqctl delete_user admin
+rabbitmqctl delete_user oisp
 
-if [ -z "${adminPwd}" -o -z "${oispPwd}" ]; then
-    PWDSZ1=$(shuf -i 12-30 -n 1)
-    PWDSZ2=$(shuf -i 12-30 -n 1)
-    echo ""
-    echo -n "Enter password for admin: "
-    read adminPwd
-    [ -z "${adminPwd}" ] && adminPwd=$(< /dev/urandom tr -dc _A-Za-z0-9- | head -c${PWDSZ1})
-    [ "${adminPwd::1}" = "-" ] && adminPwd="x${adminPwd}"
-
-    echo -n "Enter password for oisp: "
-    read oispPwd
-    [ -z "${oispPwd}" ] && oispPwd=$(< /dev/urandom tr -dc _A-Za-z0-9- | head -c${PWDSZ2})
-    [ "${oispPwd::1}" = "-" ] && oispPwd="x${oispPwd}"
-
-    echo "adminPwd=\"${adminPwd}\"" > ~/.rabbitmq.pwd
-    echo "oispPwd=\"${oispPwd}\"" >> ~/.rabbitmq.pwd
-fi
+[ -z "${adminPwd}" ] && read_password 'admin'
+[ -z "${oispPwd}"  ] && read_password 'oisp'
+cat > ~/.rabbitmq.pwd << _EOT_
+adminPwd="${adminPwd}"
+oispPwd="${oispPwd}"
+_EOT_
 
 [ -f ~/.rabbitmqadmin.conf ] && mv ~/.rabbitmqadmin.conf ~/.rabbitmqadmin.conf.bak
 
@@ -178,6 +177,38 @@ if [ ! -x /usr/bin/rabbitmqadmin ]; then
     echo -e "\n>>> Download rabbitmqadmin"
     wget -O /usr/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
     chmod +x /usr/bin/rabbitmqadmin
+    patch -s -N -r - /usr/bin/rabbitmqadmin << '_EOT_'
+--- rabbitmqadmin-3.7.13~	2019-03-21 14:02:15.209366755 +0800
++++ rabbitmqadmin-3.7.13	2019-03-21 14:03:13.225569011 +0800
+@@ -25,6 +25,7 @@
+ import socket
+ import ssl
+ import traceback
++import time
+
+ try:
+     from signal import signal, SIGPIPE, SIG_DFL
+@@ -71,7 +72,7 @@
+
+ VERSION = '3.7.13'
+
+-LISTABLE = {'connections': {'vhost': False, 'cols': ['name', 'user', 'channels']},
++LISTABLE = {'connections': {'vhost': False, 'cols': ['name', 'user', 'connected_at']},
+             'channels':    {'vhost': False, 'cols': ['name', 'user']},
+             'consumers':   {'vhost': True},
+             'exchanges':   {'vhost': True,  'cols': ['name', 'type']},
+@@ -500,7 +501,9 @@
+
+
+ def maybe_utf8(s):
+-    if isinstance(s, int):
++    if isinstance(s, int) or isinstance(s, long):
++        if s >= 1514764800000: # 2018-01-01T00:00:00.000Z
++            return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(s/1000))
+         # s can be also an int for ex messages count
+         return str(s)
+     if isinstance(s, float):
+_EOT_
 fi
 
 #rabbitmqctl add_user user1 user1.password
