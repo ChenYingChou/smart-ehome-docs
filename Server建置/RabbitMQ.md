@@ -2,7 +2,7 @@
 
 ```sh
 # 以下所有安裝或設定請用 root 身份執行
-sudo su -
+sudo -i
 ```
 [[TOC]]
 

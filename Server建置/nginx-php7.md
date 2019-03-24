@@ -4,7 +4,7 @@
 
 ### 安裝 nginx
 ```sh
-sudo su -
+sudo -i
 # 以下均以 root 權限執行
 
 apt-get install -y nginx
