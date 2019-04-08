@@ -71,7 +71,7 @@ iface eth0 inet static
     network 192.168.1.0
     gateway 192.168.1.1
     dns-nameserver 192.168.1.1
-    #dns-search smart-ehom.com
+    #dns-search smart-ehome.com
 _EOT_
     echo ">>> Deny eth0 in /etc/dhcpcd.conf"
     echo "denyinterfaces eth0" >> /etc/dhcpcd.conf
