@@ -11,12 +11,10 @@
 使用者專屬資料夾（以下以專屬資料夾稱之）基本會有資料夾如下 ：
  - 專屬資料夾/temp  : 使用精靈暫存區,完成後temp資料夾更名為*homeid*
  - 專屬資料夾/*homeid* 
- - 專屬資料夾/*homeid*/wizard  : 頁面正式組態檔（待）
  - 專屬資料夾/*homeid*/packag  : 頁面組態套用UI產生的頁面檔（待）
-
- - 帳號資料？account.json (local)
-（待）
-
+ - 帳號資料？account.json (local)（待）
+ - Document/wizard/<內購ID>  : 內購頁面檔（待）
+ 
  ### Document/專屬資料夾
  - 首頁資料 ( homelist.json )
  記錄所有項目清單。
@@ -29,15 +27,19 @@
 					"icon":"", 		//顯示圖示
 					"sort":"",
 					"token":"",	
-					"uiid":"",		//使用的UI樣式
+					"uiid":"",		//使用的UI樣式,名稱加密
 					"video":[       
 						{
+						 "id":1,
+						 "dbid":"",
 						 "name":"",
 						 "url":"",
 						 "user":"",
 						 "pwd":""
 						},
 						{
+						 "id":2,
+						 "dbid":"",
 						 "name":"",
 						 "url":"",
 						 "user":"",
@@ -153,17 +155,21 @@
 
  - 頁面清單  pageList.json (local)
 
+icon_id ：為萬用表單（080)時，img_id 才會有效，代表該頁icon圖示(預設為086圖示)。
+deviceID : 模組的設備ID，非萬用表單時使用。
  ```json
 {
     "pages":{
 		"pageid":{
             "name":"",
-            "ico_id":"",
+            "icon_id":"080",
+            "img_id":"086",
             "action":"" 
         },
 		"pageid":{
             "name":"",
-            "ico_id":"",
+            "icon_id":"",
+            "deviceID":"",
             "action":""
         }
 	}

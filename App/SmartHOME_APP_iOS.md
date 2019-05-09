@@ -4,7 +4,7 @@
 # 建立控制頁面
 - 當控制系統安裝完成後，可以透過精靈方式，STEP BY STEP 快速完成使用者控制介面。
 
-<video src="http://www.amma.com.tw/video/BuildUI.MOV" width="360" height="720" controls="controls">
+<video src="http://www.amma.com.tw/video/BuildUI.mp4" width="360" height="700" controls="controls">
 </video>
 
 # 新增刪除情境

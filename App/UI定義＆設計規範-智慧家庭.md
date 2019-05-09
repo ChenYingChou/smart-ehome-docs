@@ -448,6 +448,32 @@
 |10|下|21||32||
 |11|左|22||
 
+##### ONVIF（xxx）
+
+ 
+```
+Format : ONVIF|<ID>|<CH>|<Function>
+```
+
+
+|序號|Function|
+|:---:|:---:|
+|01|VIDEO|
+|02|UP|
+|03|DOWN|
+|04|LEFT|
+|05|RIGHT|
+|06|LEFT_UP|
+|07|LEFT_DOWN|
+|08|RIGHT_UP|
+|09|RIGHT_DOWN|
+|0A|ZOOM_IN|
+|0B|ZOOM_OUT|
+|0C|PTZ_STOP|
+|0D|SET_PRESET|
+|0E|GO_PRESET|
+
+
 ## 製作點檢表 
 
 |項目|圖檔內容|備註 |
