@@ -153,6 +153,7 @@ echo -e "\n>>> Enable rabbitmq plugins: web-management, mqtt, web-mqtt, web-auth
 # rabbitmq_web_mqtt         # tcp:15675, SSL:15674
 rabbitmq-plugins enable \
 	rabbitmq_amqp1_0 \
+    rabbitmq_event_exchange \
 	rabbitmq_auth_backend_cache \
 	rabbitmq_auth_backend_http \
 	rabbitmq_management \
