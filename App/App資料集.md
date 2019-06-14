@@ -12,6 +12,12 @@
  - 專屬資料夾/temp  : 使用精靈暫存區,完成後temp資料夾更名為*homeid*
  - 專屬資料夾/*homeid* 
  - 專屬資料夾/*homeid*/packag  : 頁面組態套用UI產生的頁面檔（待）
+ - 專屬資料夾/*homeid*/packag/image/preset  : 預設點圖檔
+  ```json
+	 videoData.dbID + "_" presetNo  (1 ~16)
+
+	例："$01|D01|V02_1.png"
+  ```
  - 帳號資料？account.json (local)（待）
  - Document/wizard/<內購ID>  : 內購頁面檔（待）
  
@@ -59,6 +65,14 @@
 	"key":""						// OISP API ClientKey
 }
 ```
+
+##### video
+若影像參數來自系統模組，參數注意如下：
+- dbid : 繫結到模組鍵值（模組id|設備id｜功能id)
+- url : 格式 "rtsp://{IP}:1980/Streaming/channels/201" , {IP}部分將於MQTT通訊時取代為內部或外部IP
+- user、pwd : 若app使用者為管理員權限，將自動由模組帶入，否則留空
+,待使用者輸入。
+
 
 
 ### Document/專屬資料夾
