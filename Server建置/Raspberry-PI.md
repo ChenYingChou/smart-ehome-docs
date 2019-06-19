@@ -41,7 +41,7 @@ node -v
 ## specific version of 10 you wish to install
 
 sudo npm install -g --unsafe-perm axios commander dateformat deep-diff mqtt \
-    bcryptjs sqlite3 amqplib koa koa-bodyparser koa-router
+    bcryptjs sqlite3 amqplib koa koa-bodyparser koa-router node-onvif
 ```
 
 ### 安裝 Web Server nginx 及 php
