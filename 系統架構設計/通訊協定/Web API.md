@@ -246,12 +246,13 @@ URI = [`<local.web_api>`](#json)`/delete_device`
     server=<本地伺服器ID>
     loginid=<登入帳號>
     password=<登入密碼>
+    target_userid=<用戶第三方認證ID>
     target_device=<設備名稱>
     ```
 
     * [`<本地伺服器ID>`](#json): 由 UDP 取得。
     * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。通常就是 App 安裝所在的設備，每次註冊後必須將帳號、密碼儲存起來。
-    * `target_device`: 驗證用戶合法性後會將指定的設備刪除之，請注意這裡的是指要刪除的設備，不是帳號 `loginid` 關聯的設備，請不要誤刪除自己本身。若未指定 `target_device` 則視同刪除本身。
+    * `target_userid`、`target_device`: 驗證登入用戶合法性後會將指定用戶的設備刪除之。若未指定 `target_userid`、`target_device` 則視同刪除本身。
     * 若不是系統管理者時，當用戶所有註冊設備都已清空時，本系統會自動移除此用戶資訊。若是系統管理者名下已無註冊設備，在[重新註冊一個新的設備](#app-設備第一次要先向本地伺服器註冊-create_device)時並不需要授權碼驗證。
 
 1. 網頁伺服器回覆:
