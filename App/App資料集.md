@@ -169,11 +169,14 @@
 
  - 頁面清單  pageList.json (local)
 
-icon_id ：為萬用表單（080)時，img_id 才會有效，代表該頁icon圖示(預設為086圖示)。
-deviceID : 模組的設備ID，非萬用表單時使用。
+> icon_id ：為萬用表單（080)時，img_id 才會有效，代表該頁icon圖示(預設為086圖示)。
+> deviceID : 模組的設備ID，非萬用表單時使用。
+
+> <span style="color:red;background-color:yellow">檔案排序：</span>
+> <span style="color:red;background-color:yellow"> 情境、排程、智慧控制、[deviceID]、[其他新增頁面:萬用表單]。</span>
+
  ```json
-{
-    "pages":{
+"pages":{
 		"pageid":{
             "name":"",
             "icon_id":"080",
@@ -184,17 +187,19 @@ deviceID : 模組的設備ID，非萬用表單時使用。
             "name":"",
             "icon_id":"",
             "deviceID":"",
-            "action":""
+			"action":""
         }
-	}
 }
+ ```
 
-```
 - 頁面內容 [pageid].json
+
+> <span style="color:red;background-color:yellow">檔案排序：</span>
+> <span style="color:red;background-color:yellow"> 情境、排程、智慧控制、設備頁面等，採function ID 排序。其他新增頁面(萬用表單)，採先後順序排序。</span>
 
  ```json
 {
-    "nodes":{
+"nodes":{
 		"nodeid":{
             "caption":"",
             "action": "**模組ID+設備ID+功能ID**"
@@ -203,10 +208,9 @@ deviceID : 模組的設備ID，非萬用表單時使用。
             "caption":"",
             "action": "**模組ID+設備ID+功能ID**"
         }
-	}      
+	}  
 }
-
-```	  
+ ```
 
 # Wizard
 與內購相關頁面組態檔，整體內購檔案結構區分如下：
