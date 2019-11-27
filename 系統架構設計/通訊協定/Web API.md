@@ -2,11 +2,11 @@
 
 [[TOC]]
 
-## App 尋找本地伺服器
+## App 尋找本地服務器
 
-若為私有 IP，則先以 UDP Port 9998 廣播尋找本地伺服器，若有回應則連接到指定伺服器，否則連到預設雲端伺服器 (`<inet.web_api>`: `https://oisp.smart-ehome.com/api`)。
+若為私有 IP，則先以 UDP Port 9998 廣播尋找本地服務器，若有回應則連接到指定服務器，否則連到預設雲端服務器 (`<inet.web_api>`: `https://oisp.smart-ehome.com/api`)。
 
-1. 尋找本地伺服器 UDP 資料: `REQ SmartHOME [TAB] <port> [TAB] <client_key>`
+1. 尋找本地服務器 UDP 資料: `REQ SmartHOME [TAB] <port> [TAB] <client_key>`
     * `<port>` 為程式接收回應的 udp 埠, 零表示使用發送封包時的 port。
     * `<client_key>` 為 16 字元隨機值 (本次臨時 key)，以 base64 編碼。
 
@@ -19,7 +19,7 @@
     # 上行輸出以 [↹] 表示 Tab 字元
     ```
 
-1. 本地伺服器回應 UDP `<port>`: `SmartHOME [TAB] <y> [TAB] <z>`
+1. 本地服務器回應 UDP `<port>`: `SmartHOME [TAB] <y> [TAB] <z>`
     * `<y>`: iv[16]+加密後的資料，轉為 base64 編碼。
     * `<z>`: `<y>` 的 `HMAC-SHA1` 驗證值，轉為 base64 編碼。 HMAC-SHA1 使用的鍵值為 `<client_key>`。
     * 若驗證正確則執行解密: `<text> =  AES-CTR 解碼(<client_key>, <y.data>, <y.iv>)`。
@@ -42,8 +42,8 @@
             }
         }
         ```
-    * 以下所提到 <b id="json"></b>`<本地伺服器ID>`、`<local.web_api>`、`<inet.web_api>` 是指此處 JSON 物件中 `server`、`local.web_api`、`inet.web_api` 的值，以本範例而言其值如下:
-        * `<本地伺服器ID>`: `d2045940-5e38-11e8-bea1-77a4b0d356bf`
+    * 以下所提到 <b id="json"></b>`<本地服務器ID>`、`<local.web_api>`、`<inet.web_api>` 是指此處 JSON 物件中 `server`、`local.web_api`、`inet.web_api` 的值，以本範例而言其值如下:
+        * `<本地服務器ID>`: `d2045940-5e38-11e8-bea1-77a4b0d356bf`
         * `<local.web_api>`: `https://dev.smart-ehome.com/api`
         * `<inet.web_api>`: `https://oisp.smart-ehome.com/api`
     * php 逐步示範：
@@ -76,17 +76,17 @@
 
 ## 網站連線主機名稱
 
-1. 雲端伺服器連線: `<WebAPI>` = [`<inet.web_api>`](#json)。
-1. 本地伺服器連線: `<WebAPI>` = [`<local.web_api>`](#json)。
+1. 雲端服務器連線: `<WebAPI>` = [`<inet.web_api>`](#json)。
+1. 本地服務器連線: `<WebAPI>` = [`<local.web_api>`](#json)。
 
 
 ## Web API 一律採用 POST 方法
 
 1. 為了安全起見 Web API 一律採用 POST 方法，若網站有對外開放時請使用 SSL 加密，避免帳戶資料的外洩。
 1. `POST` 資料內容可選擇下列兩種表示法，請於 HTTP 標題指定 `Content-Type`:\
-    以 [App 設備第一次要先向本地伺服器註冊 `create_device`](#app-設備第一次要先向本地伺服器註冊-create_device) 範例說明:
+    以 [App 設備第一次要先向本地服務器註冊 `create_device`](#app-設備第一次要先向本地服務器註冊-create_device) 範例說明:
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     userid=<用戶第三方認證ID>
     name=<用戶名稱>
     device=<設備名稱>
@@ -117,19 +117,19 @@
         ```
         server=d2045940-5e38-11e8-bea1-77a4b0d356bf&userid=AX1234567890&name=Sam%20Wang&device=iPhone%207&authcode=1G78F95W8F&lang=zh-TW
         ```
-1. 伺服器回覆一律為 JSON 格式 (`Content-Type: application/json; charset=utf-8`)\
+1. 服務器回覆一律為 JSON 格式 (`Content-Type: application/json; charset=utf-8`)\
     以下 JSON 格式中的註解僅為說明用，實際返回不包含這些註解:
     ```js
     // 正確
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                     	// 0:成功
         "payload": _視各功能返回不同型態的_物件_陣列_或_字串_
     }
 
     // 錯誤
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
         "payload": "<錯誤訊息>"
     }
@@ -138,20 +138,20 @@
 
 ## 推播令牌 token 設定
 
-1. 推播令牌: 為 FCM 推播時設備的授權令牌。App 必須自行向 FCM (Google 雲端訊息推播) 註冊主題推播 `/topics/<本地伺服器ID>` 才可收到系統推播訊息。此令牌為必要時本系統對指定設備推播個人訊息。
+1. 推播令牌: 為 FCM 推播時設備的授權令牌。App 必須自行向 FCM (Google 雲端訊息推播) 註冊主題推播 `/topics/<本地服務器ID>` 才可收到系統推播訊息。此令牌為必要時本系統對指定設備推播個人訊息。
 2. 可在任一 Web API 中指定 `token` 推播令牌欄位，若和資料庫帳號中不同時會自動更新:
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     loginid=<登入帳號>
     password=<登入密碼>
     token=<推播令牌>
     ```
-3. 若 `<推播令牌>` 為單一 `?`，則表示清除資料庫中的 `token` 欄位，此後本系統將無法針對這個設備推播個人訊息。但此設備仍會收到主題推播，除非刪除應用程式或應用程式向 FCM 解除本伺服器的主題推播。
+3. 若 `<推播令牌>` 為單一 `?`，則表示清除資料庫中的 `token` 欄位，此後本系統將無法針對這個設備推播個人訊息。但此設備仍會收到主題推播，除非刪除應用程式或應用程式向 FCM 解除本服務器的主題推播。
 
 
 ## App 用戶及設備註冊
 
-### App 設備第一次要先向本地伺服器註冊 (create_device)
+### App 設備第一次要先向本地服務器註冊 (create_device)
 
 URI = [`<local.web_api>`](#json)`/create_device`
 
@@ -160,7 +160,7 @@ URI = [`<local.web_api>`](#json)`/create_device`
     第二個起的用戶第一次授權必須向 [系統管理者取得新用戶的授權碼 `get_authcode`](#系統管理者取得新用戶的授權碼-get_authcode)，第一個註冊的用戶即為系統管理者 (此時不檢查 `authcode`)。
 
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     userid=<用戶第三方認證ID>
     name=<用戶名稱>
     device=<設備名稱>
@@ -169,7 +169,7 @@ URI = [`<local.web_api>`](#json)`/create_device`
     lang=zh-TW
     ```
 
-    * [`<本地伺服器ID>`](#json): 由 UDP 取得。
+    * [`<本地服務器ID>`](#json): 由 UDP 取得。
     * <b id="userid"></b>`<用戶第三方認證ID>`: 指 APP 在 Facebook 或 Google 取得的第三方認證識別 ID。由於本系統信任 APP 所指定的 `<用戶第三方認證ID>`，因此請 APP 設計者妥善保管此一資訊，最好能以加密方式保存之。
     * `<用戶名稱>`: 為取自第三方認證帶過來的名稱，若無可省略此欄，本系統會以 `<用戶第三方認證ID>` 取代。
     * `<設備名稱>`: 請 App 自行定義，如: iPhone、iPad、Sony XZ ...，以供後續調用區別。若 `<設備名稱>` 已存在，則會延用舊有登入帳號，重新分配一個密碼，舊的密碼立即作廢。
@@ -177,12 +177,12 @@ URI = [`<local.web_api>`](#json)`/create_device`
     * `<授權碼>`: 此欄位在新設備註冊前需向系統管理者取得之。若未帶此授權碼，除了第一個註冊的設備外，其餘會回報錯誤要求取得授權碼，之後再請再重試一次。
     * [`lang`](#訊息語系-lang): 返回錯誤訊息使用語系。
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     // 正確
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                     	// 0:成功
         "payload": {
             "device": "<設備名稱>",
@@ -193,13 +193,13 @@ URI = [`<local.web_api>`](#json)`/create_device`
 
     // 錯誤
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
         "payload": "<錯誤訊息>"
     }
     ```
 
-    * 若收到 `status` = `2`，請向系統管理者 (第一個註冊者) 取得新授權碼後再試一次。參見 [特殊的錯誤碼處理原則](#網頁伺服器回覆-status-錯誤處理)。
+    * 若收到 `status` = `2`，請向系統管理者 (第一個註冊者) 取得新授權碼後再試一次。參見 [特殊的錯誤碼處理原則](#網頁服務器回覆-status-錯誤處理)。
     * 每次授權碼使用後會失效，因此系統管理者要為每個新設備取得授權碼。每次取得的授權碼有效期間只有 4 個小時，超過時間後將無法註冊新設備，請重新取得授權碼後再註冊設備。
 
 
@@ -210,28 +210,28 @@ URI = [`<local.web_api>`](#json)`/get_devices`
 1. App 送出 `POST` 資料如下:
 
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     userid=<用戶第三方認證ID>
     ```
     或
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     loginid=<登入帳號>
     password=<登入密碼>
     ```
 
-    * [`<本地伺服器ID>`](#json): 由 UDP 取得。
+    * [`<本地服務器ID>`](#json): 由 UDP 取得。
     * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
     * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。通常就是 App 安裝所在的設備，每次註冊後必須將帳號、密碼儲存起來。
     * 可使用 `<用戶第三方認證ID>` 或 `loginid、password` 其中一種方式來確認用戶身份。
     * 當 App 設備更換或不確定以前是否已註冊過某一設備型號時，可用此 API 取得用戶已註冊清單，將已廢棄不用的設備刪除。
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     // 正確
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                     	// 0:成功
         "payload": {
             "userid": "<用戶第三方認證ID>",
@@ -242,7 +242,7 @@ URI = [`<local.web_api>`](#json)`/get_devices`
 
     // 錯誤
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
         "payload": "<錯誤訊息>"
     }
@@ -256,31 +256,31 @@ URI = [`<local.web_api>`](#json)`/delete_device`
 1. App 送出 `POST` 資料如下:
 
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     loginid=<登入帳號>
     password=<登入密碼>
     target_userid=<用戶第三方認證ID>
     target_device=<設備名稱>
     ```
 
-    * [`<本地伺服器ID>`](#json): 由 UDP 取得。
+    * [`<本地服務器ID>`](#json): 由 UDP 取得。
     * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。通常就是 App 安裝所在的設備，每次註冊後必須將帳號、密碼儲存起來。
     * `target_userid`、`target_device`: 驗證登入用戶合法性後會將指定用戶的設備刪除之。若未指定 `target_userid`、`target_device` 則視同刪除本身。
-    * 若不是系統管理者時，當用戶所有註冊設備都已清空時，本系統會自動移除此用戶資訊。若是系統管理者名下已無註冊設備，在[重新註冊一個新的設備](#app-設備第一次要先向本地伺服器註冊-create_device)時並不需要授權碼驗證。
+    * 若不是系統管理者時，當用戶所有註冊設備都已清空時，本系統會自動移除此用戶資訊。若是系統管理者名下已無註冊設備，在[重新註冊一個新的設備](#app-設備第一次要先向本地服務器註冊-create_device)時並不需要授權碼驗證。
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     // 正確
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                        // 0:成功
         "payload": "<完成訊息>"              // 已刪除用戶、還有 n 個設備 ...
     }
 
     // 錯誤
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
         "payload": "<錯誤訊息>"
     }
@@ -294,24 +294,24 @@ URI = [`<local.web_api>`](#json)`/get_authcode`
 1. App (系統管理者) 送出 `POST` 資料如下:
 
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     loginid=<系統管理者登入帳號>
     password=<系統管理者登入密碼>
     ```
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     // 正確
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                     	// 0:成功
         "payload": "<新用戶授權碼>"
     }
 
     // 錯誤
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
         "payload": "<錯誤訊息>"
     }
@@ -325,20 +325,20 @@ URI = [`<local.web_api>`](#json)`/get_reg_users`
 1. App 送出 `POST` 資料如下:
 
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     loginid=<系統管理者登入帳號>
     password=<系統管理者登入密碼>
     ```
 
-    * [`<本地伺服器ID>`](#json): 由 UDP 取得。
+    * [`<本地服務器ID>`](#json): 由 UDP 取得。
     * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     // 正確
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                     	// 0:成功
         "payload": [
             {
@@ -357,7 +357,7 @@ URI = [`<local.web_api>`](#json)`/get_reg_users`
 
     // 錯誤
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
         "payload": "<錯誤訊息>"
     }
@@ -374,7 +374,7 @@ URI = [`<local.web_api>`](#json)`/update_reg_user`
 1. App 送出 `POST` 資料如下:
 
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     loginid=<系統管理者登入帳號>
     password=<系統管理者登入密碼>
     target_userid=<用戶第三方認證ID>
@@ -382,26 +382,26 @@ URI = [`<local.web_api>`](#json)`/update_reg_user`
     is_admin=<0,1>
     ```
 
-    * [`<本地伺服器ID>`](#json): 由 UDP 取得。
+    * [`<本地服務器ID>`](#json): 由 UDP 取得。
     * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。
     * `target_userid`、`is_admin`: 設定用戶 `target_userid` 管理者身份 (`is_admin`)。
     * `target_name`: 不為空白時才更新用戶名稱，此欄位可省略。
     * 僅系統管理者才可變更其他用戶 `is_admin` 身份。
     * 非系統管理者只能更改自己的用戶名稱。
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     // 正確
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                     	// 0:成功
         "payload": "<成功訊息>"
     }
 
     // 錯誤
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
         "payload": "<錯誤訊息>"
     }
@@ -418,30 +418,30 @@ URI = [`<local.web_api>`](#json)`/delete_reg_user`
 1. App (系統管理者) 送出 `POST` 資料如下:
 
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     loginid=<系統管理者登入帳號>
     password=<系統管理者登入密碼>
     target_userid=<用戶第三方認證ID>
     ```
 
-    * [`<本地伺服器ID>`](#json): 由 UDP 取得。
+    * [`<本地服務器ID>`](#json): 由 UDP 取得。
     * [`<用戶第三方認證ID>`](#userid): 指用戶在 Facebook 或 Google 取得的第三方認證識別 ID。
     * `loginid`、`password`: 必需是已註冊用戶設備帳號，以驗證用戶的合法性。
     * `target_userid`: 刪除用戶 `target_userid` 及其下所有的註冊設備、登入資訊等。
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     // 正確
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                     	// 0:成功
         "payload": "<完成訊息>"
     }
 
     // 錯誤
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
         "payload": "<錯誤訊息>"
     }
@@ -459,7 +459,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/login`
 1. App 送出 `POST` 資料如下:
 
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     loginid=<登入帳號>
     password=<登入密碼>
     lang=zh-TW
@@ -467,11 +467,11 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/login`
 
     * [`lang`](#訊息語系-lang): 登入成功時，本系統會將您的語系存到對應的登入帳號。以後在 MQTT 通訊中若發生錯誤時，會以此刻指定的語系送出相關訊息。
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                        // 0:成功, 非零:錯誤
         "payload": {                        // MQTT 用物件 或 錯誤訊息(字串)
             "clientid": "<client_id>",
@@ -492,30 +492,30 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/login`
 
 URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_confreq`
 
-本功能為 [MQTT 通訊協定 - 查詢伺服器下各模組設備組態 (cmd=1)](./MQTT%20通訊協定.md#查詢伺服器下各模組設備組態-cmd1) 中原有功能，改用 Web API 轉接。
+本功能為 [MQTT 通訊協定 - 查詢服務器下各模組設備組態 (cmd=1)](./MQTT%20通訊協定.md#查詢服務器下各模組設備組態-cmd1) 中原有功能，改用 Web API 轉接。
 
 1. App 送出 `POST` 資料如下:
 
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     loginid=<登入帳號>
     password=<登入密碼>
     lang=zh-TW
     ```
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                // 0:成功, 非零:錯誤
         "payload": {                // 所有模組設備組態 或 錯誤訊息(字串)
-            // 詳見 MQTT 通訊協定手冊 - 伺服器回應各模組/設備組態
+            // 詳見 MQTT 通訊協定手冊 - 服務器回應各模組/設備組態
         }
     }
     ```
 
-    * 成功時 `payload` 內容詳見 [MQTT 通訊協定 - 伺服器回應各模組/設備組態 (cmd=101)](./MQTT%20通訊協定.md#伺服器回應各模組設備組態-cmd101)。
+    * 成功時 `payload` 內容詳見 [MQTT 通訊協定 - 服務器回應各模組/設備組態 (cmd=101)](./MQTT%20通訊協定.md#服務器回應各模組設備組態-cmd101)。
 
 
 ### 查詢系統中所有模組/設備/功能最新狀態 (mq_statusreq)
@@ -527,17 +527,17 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_statusreq`
 1. App 送出 `POST` 資料如下:
 
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     loginid=<登入帳號>
     password=<登入密碼>
     lang=zh-TW
     ```
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                // 0:成功, 非零:錯誤
         "payload": {                // 所有模組/設備/功能最新狀態 或 錯誤訊息(字串)
             // 詳見 MQTT 通訊協定手冊 - 查詢模組/設備/功能最新狀態
@@ -559,7 +559,7 @@ App 送出 `POST` 資料如下:
 JSON: `Content-Type: application/json`
 ```js
 {
-    "server": "<本地伺服器ID>"，
+    "server": "<本地服務器ID>"，
     "loginid": "<登入帳號>"，
     "password": "<登入密碼>"，
     "payload": _payload_
@@ -572,7 +572,7 @@ JSON: `Content-Type: application/json`
 
 ```js
 {
-    "server": "<本地伺服器ID>"，
+    "server": "<本地服務器ID>"，
     "loginid": "<登入帳號>"，
     "password": "<登入密碼>"，
     "payload": "|$00|PUSHES|2|測試 - %m"    // 若只用原有推播設定訊息時, 狀態值給 "1" 即可
@@ -589,7 +589,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsqryreq`
 1. App 送出 `POST` 資料如下:
 
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     loginid=<登入帳號>
     password=<登入密碼>
     did=<設備ID>
@@ -604,14 +604,14 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsqryreq`
         WISDOMS | 智慧控制
         SCHEDULES | 排程
         PUSHES | 推播
-    * `_version_` 為版本數值，省略 (視同零)。若伺服器版本號碼大於請求方的值，則會送出該伺服器所有模組組態。現存的版本號號從 1 計起，每次組態變更會加 1，因此請求方的 `_version_` 為零則表示要求伺服器重送出指定系統模組設備的內容結構。
+    * `_version_` 為版本數值，省略 (視同零)。若服務器版本號碼大於請求方的值，則會送出該服務器所有模組組態。現存的版本號號從 1 計起，每次組態變更會加 1，因此請求方的 `_version_` 為零則表示要求服務器重送出指定系統模組設備的內容結構。
 
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,            // 0:成功, 非零:錯誤
         "payload": {            // 情境/智慧控制/排程/推播各功能內容 或 錯誤訊息(字串)
             // 詳見 MQTT 通訊協定手冊 - 系統模組回應查詢情境/智慧控制/排程/推播各功能內容
@@ -633,7 +633,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
     JSON: `Content-Type: application/json`
     ```js
     {
-        "server": "<本地伺服器ID>"，
+        "server": "<本地服務器ID>"，
         "loginid": "<登入帳號>"，
         "password": "<登入密碼>"，
         "did": "_id_",
@@ -762,11 +762,11 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/mq_sdsupdreq`
         "payload": [ "推播ID", ... ]
         ```
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                // 0:成功, 非零:錯誤
         "payload": "**msg**"
     }
@@ -784,7 +784,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/messages`
 1. App 送出 `POST` 資料如下:
 
     ```
-    server=<本地伺服器ID>
+    server=<本地服務器ID>
     loginid=<登入帳號>
     password=<登入密碼>
     page=1
@@ -794,11 +794,11 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/messages`
     * `page`: 讀取第幾頁，從 1 計起。訊息由近到遠排序。
     * `page_size`: 每頁多少筆訊息，本欄位為選項，預設為每頁 100 筆。
 
-1. 網頁伺服器回覆:
+1. 網頁服務器回覆:
 
     ```js
     {
-        "server": "<伺服器ID>",
+        "server": "<服務器ID>",
         "status": 0,                // 0:成功, 非零:錯誤
         "payload": {
             "page": 1,
@@ -838,16 +838,16 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/messages`
 * 目前本系統預設語系有 `en` (`en-??`)、`tw` (`zh-TW`)、`cn` (`zh-CN`)。
 
 
-## 網頁伺服器回覆 status 錯誤處理
+## 網頁服務器回覆 status 錯誤處理
 
 * `status = 1` 表示一般性錯誤，使用者請依訊息做對應處理即可，程式不需特別處理。除非在 API 中另有說明。
-* `status = 2` 請依 API 中說明處理，例如 [App 設備第一次要先向本地伺服器註冊](#app-設備第一次要先向本地伺服器註冊-create_device)。
-* `status = 3` 登錄失敗，帳號/密碼錯誤，或帳號已被移除，[請重新註冊設備](#app-設備第一次要先向本地伺服器註冊-create_device)。
+* `status = 2` 請依 API 中說明處理，例如 [App 設備第一次要先向本地服務器註冊](#app-設備第一次要先向本地服務器註冊-create_device)。
+* `status = 3` 登錄失敗，帳號/密碼錯誤，或帳號已被移除，[請重新註冊設備](#app-設備第一次要先向本地服務器註冊-create_device)。
 * `status >= 10` 表示進入系統資料庫前發生錯誤，無法進行用戶、帳號授權及登入等處理:
 
     status | 訊息 | 處理措施
     :---:|:---:|---
-    10 | 無效的伺服器 ID | 請確認您所連接是正確的伺服器, 或是請重新用 [UDP 尋找本地伺服器](#app-尋找本地伺服器)
+    10 | 無效的服務器 ID | 請確認您所連接是正確的服務器, 或是請重新用 [UDP 尋找本地服務器](#app-尋找本地服務器)
     11 | 未指派命令 | 請檢查 URI "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 格式是否正確, 此錯誤表示您未指定 `<命令>`
     12 | 無效的命令 | 請檢查 URI "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 中的 `<命令>` 是否正確,<br>如: App 登錄 [`https://dev.smart-ehome.com/api/login`](#app-登錄取得取得-mqtt-通訊時所需的資訊-login)
 

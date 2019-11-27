@@ -83,7 +83,7 @@
  ```json
  // 正確
 {
-	"xxx-xxx-xxx-xxx-xxx": {		// <伺服器ID>
+	"xxx-xxx-xxx-xxx-xxx": {		// <服務器ID>
 		"xxx-xxx":{					// <設備名稱>
 			"uid": "<登入帳號>",
 			"pwd": "<登入密碼>",
@@ -98,7 +98,7 @@
 
  ```
 
- - 伺服器連線資訊 ServerInfo.txt（from server）
+ - 服務器連線資訊 ServerInfo.txt（from server）
 加密：Base64 >  AES  CTR 
 解密 :  AES  CTR > Base64
 

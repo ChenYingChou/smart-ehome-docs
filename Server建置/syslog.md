@@ -138,7 +138,7 @@
     ^C (手動中止)
     ```
 
-* 伺服器端收到: 參考 /etc/rsyslog.d/debug.conf 中只接收 `user.debug`
+* 服務器端收到: 參考 /etc/rsyslog.d/debug.conf 中只接收 `user.debug`
     ```
     prompt> tail -f /var/log/debug
     Jan 21 22:38:10 hostname APP-NAME[PID] message 1
