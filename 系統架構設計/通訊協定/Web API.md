@@ -115,7 +115,7 @@
         ```
     * Form Urlencoded: `Content-Type: application/x-www-form-urlencoded`
         ```
-        server=d2045940-5e38-11e8-bea1-77a4b0d356bf&userid=AX1234567890&name=Sam%20Wang&device=iPhone%207&authcode=1G78F95W8F&lang=zh-TW
+        server=d2045940-5e38-11e8-bea1-77a4b0d356bf&userid=AX1234567890&name=Sam+Wang&device=iPhone+7&authcode=1G78F95W8F&lang=zh-TW
         ```
 1. 服務器回覆一律為 JSON 格式 (`Content-Type: application/json; charset=utf-8`)\
     以下 JSON 格式中的註解僅為說明用，實際返回不包含這些註解:
