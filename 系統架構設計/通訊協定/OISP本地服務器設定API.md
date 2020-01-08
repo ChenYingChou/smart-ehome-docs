@@ -27,7 +27,7 @@ description: OISP Local Server Setup API
         "name": "AMMA-2F",
         "s_id": "AM2F",
         "local": {
-            "web_api": "http://192.168.1.37",
+            "web_api": "http://192.168.1.37/api",
             "mqtt_host": "192.168.1.37",
             "mqtt_port": 1883,
             "mqtt_ssl_port": 8883
@@ -108,9 +108,11 @@ description: OISP Local Server Setup API
 1. URI = [`<local.web_api>`](#json)`/setup/token`
     ```
     authcode=<授權碼>
+    token=<舊通行令牌-選項>
     server=<本地服務器UUID>
     ```
-    + `<授權碼>`: 向系統管理者索取【[本地服務器的通行令牌](https://md.smart-ehome.com/oisp/系統架構設計/通訊協定/Web%20API.md#系統管理者取得新用戶的授權碼-get_authcode)】。若為新的系統尚無系統管理者則可帶空值。
+    + `<授權碼>`: 向系統管理者索取【[本地服務器的通行令牌](https://md.smart-ehome.com/oisp/系統架構設計/通訊協定/Web%20API.md#系統管理者取得新用戶的授權碼-get_authcode)】。若為新的系統尚無系統管理者則可省略本欄位。
+    + `token`: 本欄位為選項，若有時表示在舊通行令牌有效期間來換取新的通行令牌，此時可不理會 `authcode`。
     + `<本地服務器UUID>`: 請帶【[搜尋本地服務器](#搜尋本地服務器及初始化)】取得的 `server` 欄位值。
 2. 成功時返回 `payload` 的 `token` 將應用於隨後 API 中:
     ```json
@@ -118,10 +120,12 @@ description: OISP Local Server Setup API
         "server": "<本地服務器UUID>",
         "status": 0,
         "payload": {
-            "token": "<通行令牌>"
+            "token": "<通行令牌>",
+            "expires_in": 28800
         }
     }
     ```
+    + `expires_in`: 表示 `<通行令牌>` 的有效時間秒數。系統檢查通行令牌允許逾時五分鐘內視為有效。
 
 ### 1. 本地服務器初始化
 
@@ -130,7 +134,7 @@ description: OISP Local Server Setup API
     token=<通行令牌>
     authcode=<雲端會員取得授權碼>
     name=<本地服務器名稱>
-    server=<本地服務器UUID>
+    server=<本地服務器UUID-可省略>
     s_id=<本地服務器短ID-可省略>
     ```
     + `token`: 通行令牌為溝通本地服務器的授權依據。
@@ -463,13 +467,14 @@ description: OISP Local Server Setup API
 
 ### 4. 儲存現有模組組態
 
-1. URI = [`<local.web_api>`](#json)`/setup/modules/save`
+1. URI = [`<local.web_api>`](#json)`/setup/modules/save`\
+請用 JSON 格式傳輸: `Content-Type: application/json`
     ```json
     {
         "token": "<通行令牌>",
         "server": "<本地服務器UUID>",
         "payload": {
-            "add": [ // ... 基本同 [3.取得現有模組組態] 的返回模組物件 (沒有目錄名稱)
+            "add": [ // ... 基本同 [3.取得現有模組組態] 的返回模組物件 (無目錄名稱)
                 { 模組1 }, { 模組2 }, ...
             ],
             "delete": [
@@ -485,8 +490,8 @@ description: OISP Local Server Setup API
     + `add` 新增模組: 由系統自行定義目錄名稱。每個模組必須包含廠家驅動模組 `_config` 內容。
     + `delete` 只須帶 "目錄名稱" 陣列即可，系統會停用該模組並刪除該目錄。
     + `update` 修改現有模組:
-        + `_config` 組態: 只有 `activate` 可變更，其他不可異動。
-        + 通常是異動 `devices` 組態，視需要增刪改其他組態。
+        + `_config` 組態中只有 `activate` 可變更，其他欄位請勿異動。
+        + 通常以 `devices` 為主要組態來異動，並視需要增刪改其他相關的組態。
 
 2. 返回:
     ```json
@@ -496,7 +501,7 @@ description: OISP Local Server Setup API
         "payload": "處理訊息"
     }
     ```
-    + 請檢查 `status` 欄位，非零表示有錯 (可能只有一部份)，錯誤內容參考 `payload` 內容。
+    + 請檢查 `status` 欄位，非零表示有錯 (可能部份有問題)。錯誤內容請參考 `payload`，其可能包含多個訊息，每一訊息為一行，以 CR/LF ("`\r\n`") 分隔。
 
 ### 5. 測試通訊埠及偵測設備
 
