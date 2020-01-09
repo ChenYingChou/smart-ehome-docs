@@ -138,7 +138,7 @@ description: OISP Local Server Setup API
     s_id=<本地服務器短ID-可省略>
     ```
     + `token`: 通行令牌為溝通本地服務器的授權依據。
-    + `server` 欄位為 UUID 格式，若格式不符則由雲端系統給定。此欄位會原封不動在返回結果中 (和 `status` 同一層)，可用以識別是由哪個送出的請求。沒有特殊需求時請給定 "`?`" 由系統決定。
+    + `server` 欄位為 UUID 格式，若格式不符則由雲端系統給定。此欄位會原封不動在返回結果中 (和 `status` 同一層)，可用以識別是由哪個送出的請求。沒有特殊需求時可省略本欄由系統決定。
     + `s_id` 欄位文數字 4 碼，若長度不符時由雲端系統給定。沒有特殊需求時可省略。主要用於 MQTT 通訊中，以節省傳輸量。
     + `s_id` 及 `server` 即使自行指定，但在雲端系統發現有衝突時會主動返回唯一的值。這些值會在返回結果的 `payload` 物件中。
 2. 返回:
@@ -371,10 +371,11 @@ description: OISP Local Server Setup API
     ```
     token=<通行令牌>
     server=<本地服務器UUID>
-    modules=<模組名稱清單>
+    modules=<模組名稱清單-可省略>
     ```
     + `modules` 欄位可省略，表示取得現有系統的所有模組組態。
-    + `<模組名稱清單>` 內容為一字串陣列表示要取得哪些目錄下的組態，如: `["amma", "modbus", "onvif"]`，若無該目錄則不會有對應的返回值。通常不會特別指定模組名稱清單。
+    + `<模組名稱清單>` 內容為一字串陣列表示要取得哪些目錄下的組態，如: "`amma,modbus,onvif`"，若無該目錄則不會有對應的返回值。通常不指定模組名稱清單，會抓取現有全部模組的組態。
+    + 本系統會自動偵測本地區域網路上的 onvif 攝影機，此一過程約要花費 3 秒，請稍加等待。
 
 2. 返回:
     ```json
@@ -453,9 +454,9 @@ description: OISP Local Server Setup API
                 "devices": {}
             },
             "onvif": {
-                "http://192.168.1.233:88080/onvif/device_service": {
+                "http://192.168.1.233:28080/onvif/device_service": {
                     "name": "Embedded Net DVR",
-                    "xaddr": "http://192.168.1.233:8080/onvif/device_service"
+                    "xaddr": "http://192.168.1.233:28080/onvif/device_service"
                 },
                 "http://192.168.1.232:19980/onvif/device_service": {
                     "name": "Vstarcam",
@@ -466,6 +467,8 @@ description: OISP Local Server Setup API
         + `onvif` 欄位為系統自動偵測所得 (約花費 3 秒)，此例中偵測到兩組攝影機，每組攝影機串流數視各廠牌設備而不同。可用此資訊再呼叫【[5.測試通訊埠及偵測設備](#5-測試通訊埠及偵測設備)】API 取得詳細串流資訊，以供組態設定。
 
 ### 4. 儲存現有模組組態
+
+==☆☆☆ 測試中 ☆☆☆==
 
 1. URI = [`<local.web_api>`](#json)`/setup/modules/save`\
 請用 JSON 格式傳輸: `Content-Type: application/json`
@@ -486,6 +489,7 @@ description: OISP Local Server Setup API
                 // ...
             },
         }
+    }
     ```
     + `add` 新增模組: 由系統自行定義目錄名稱。每個模組必須包含廠家驅動模組 `_config` 內容。
     + `delete` 只須帶 "目錄名稱" 陣列即可，系統會停用該模組並刪除該目錄。
@@ -505,25 +509,138 @@ description: OISP Local Server Setup API
 
 ### 5. 測試通訊埠及偵測設備
 
-1. URI = [`<local.web_api>`](#json)`/setup/modules/testDevices`
+==☆☆☆ 測試中 ☆☆☆==
+
+1. URI = [`<local.web_api>`](#json)`/setup/modules/testDevices` \
+請用 JSON 格式傳輸: `Content-Type: application/json`
     ```
-    token=<通行令牌>
-    server=<本地服務器UUID>
-    payload=<模組名稱清單>
+    {
+        "token": "<通行令牌>",
+        "server": "<本地服務器UUID>",
+        "payload": [
+            [ _config, Conn_Object ],
+            //...
+        ]
+    }
     ```
-    + a
-    + b
+    + `_config` 為之前的驅動模組物件，用到欄位: `{ vendor, drive }`。
+    + `Conn_Object` 為連線必要資訊，視各驅動模組需求而有不同。
+    + 範例:
+    ```json
+    {
+      "server": "<本地服務器UUID>",
+      "token": "<通行令牌>",
+      "payload": [
+        [ { "vendor": "AMMA", "drive": "minix" },
+          {
+            "host": "192.168.1.114",
+            "port": 16779,
+            "user": "admin",
+            "password": "password"
+          }
+        ],
+        [ { "vendor": "OTHERS", "drive": "onvif" },
+          [
+            {
+              "name": "Embedded Net DVR",
+              "xaddr": "http://192.168.1.233:80/onvif/device_service",
+              "user": "admin",
+              "pass": "password"
+            },
+            {
+              "name": "Vstarcam",
+              "xaddr": "http://192.168.1.232:10080/onvif/device_service",
+              "user": "admin",
+              "pass": "password"
+            }
+          ]
+        ]
+      ]
+    }
+    ```
 
 2. 返回:
     ```json
     {
-        "server": "<本地服務器UUID>",
-        "status": 0,
-        "payload": {
-            // !! todo
-        }
+      "server": "<本地服務器UUID>",
+      "status": 0,
+      "payload": [
+        [ [2, 4], [1, 8], [0, 9] ],
+        [
+          { "name": "Embedded Net DVR",
+            "xaddr": "http://192.168.1.233:80/onvif/device_service",
+            "user": "admin",
+            "pass": "password",
+            "type": "DS-7204HQHI-K1",
+            "manufacturer": "Hangzhou Hikvision Digital Technology Co., Ltd",
+            "serial_no": "0420171110CCWR128188354WCVU",
+            "profiles": [
+              { "name": "ProfileToken001",
+                "rtsp": "rtsp://192.168.1.233:21080/Streaming/Unicast/channels/101",
+                "resolution": [ 960, 480 ],
+                "ptz": ""
+              },
+              { "name": "ProfileToken002",
+                "rtsp": "rtsp://192.168.1.233:21080/Streaming/Unicast/channels/201",
+                "resolution": [ 960, 480 ],
+                "ptz": ""
+              },
+              { "name": "ProfileToken003",
+                "rtsp": "rtsp://192.168.1.233:21080/Streaming/Unicast/channels/301",
+                "resolution": [ 1920, 1080 ],
+                "ptz": ""
+              },
+              { "name": "ProfileToken004",
+                "rtsp": "rtsp://192.168.1.233:21080/Streaming/Unicast/channels/401",
+                "resolution": [ 1920, 1080 ],
+                "ptz": ""
+              }
+            ]
+          },
+          { "name": "Vstarcam",
+            "xaddr": "http://192.168.1.232:10080/onvif/device_service",
+            "user": "admin",
+            "pass": "password",
+            "type": "Hi3518eV100",
+            "manufacturer": "Vstarcam",
+            "serial_no": "VSTA481137EHDPL",
+            "profiles": [
+              { "name": "PROFILE_000",
+                "rtsp": "rtsp://192.168.1.232:10554/tcp/av0_0",
+                "resolution": [ 1280, 720 ],
+                "ptz": "xyz"
+              },
+              { "name": "PROFILE_001",
+                "rtsp": "rtsp://192.168.1.232:10554/tcp/av0_1",
+                "resolution": [ 640, 360 ],
+                "ptz": "xyz"
+              }
+            ]
+          }
+        ]
+      ]
     }
     ```
-    + a
-    + b
+    + `payload` 為一陣列物件，對應請求 `payload` 的結果。每一結果為:
+        + false: 連線失敗，可能 `ip:port` 或帳密錯誤。
+        + true: 連線成功，但不保證連接設備回饋正常。
+        + 陣列或物件: 表示連線成功，且能自動偵測連接的設備結果。此一結果視各驅動模組而有不同。
+    + 銨茂模組 (含 minix): 為一陣列，每一元素為 `[設備id, 模組id]`。`設備id`: 0~255，`模組id` 如下:
+        模組id | 型號及內容
+        ------|------
+         1 | AM-100        DMX 32 迴路
+         2 | AM-210        DO:10
+         3 | AM-310        PD:10
+         4 | AM-DIO,MT-80  DI:8   DO:6  PD:6
+         5 | AM-311        DI:12
+         7 | AM-250 Dimmer CH-2
+         8 | AM-210S DO CH-10 PD-10 DO-10
+         9 | Curtain
+        11 | AM-260 Dimmer CH-6
+        12 | AM-255 Dimmer CH-4
+    + `onvif` 系統攝影機模組 (`$01`): 為一陣列對應請求的返回結果，每一攝影機可能會有多組串流，可能代表不同攝像鏡頭 (頻道)、解析度或幀率 (畫質)。依 `onvif` 規格會含以 `profiles` 表示有多少串流，每一串流為 `{ name, rtsp, resolution, ptz }`
+        + `name`: profile 名稱，做為識別用。
+        + `rtsp`: 串流連線位置。
+        + `resolution`: 畫面解析度 (參考用)，為一陣列兩個元表示寬高，例如: `[1280, 720]` 表示 1280x768 像素
+        + `ptz`: 是否支援鏡頭轉動，以 `x` 表示橫向、`y` 表示縱向、`z` 表示深度 (焦距拉近拉遠)。由於各設備廠家實作問題，不代表有支援就能一定正常操作。
 
