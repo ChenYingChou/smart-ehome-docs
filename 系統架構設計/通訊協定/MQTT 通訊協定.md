@@ -17,6 +17,7 @@ const account = {   // 來自 Web API: create_device
     "password": "xxxxxxk6KWNbc3FxWWyyyyyy"
 }
 const mqtt_info = { // 來自 Web API: login
+    "user": "D2587",  // 此值在連雲端服務器會有不同, 例如: "AM2F-D2587"
     "clientid": "1:A001-D2587(Sony XZ2)",
     "topic": {
         "pub": "to/",
@@ -32,7 +33,7 @@ const client = require('mqtt').connect({
     host: mqServer.mqtt_host,
     port: mqServer.mqtt_ssl_port || mqServer.mqtt_port,
     protocol: mqServer.mqtt_ssl_port ? 'tls' : 'tcp',
-    username: account.loginid,
+    username: mqtt_info.user,       // 注意: 請用 mqtt_info.user
     password: account.password,
     clientId: mqtt_info.clientid
 })

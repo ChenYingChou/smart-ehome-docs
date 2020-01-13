@@ -21,7 +21,7 @@ description: OISP Local Server Setup API
 
 1. 在區域網路中以 UDP【[尋找本地服務器](https://md.smart-ehome.com/oisp/系統架構設計/通訊協定/Web%20API.md#app-尋找本地服務器)】。
 2. 解碼後得到<b id="json"></b>
-    ```json
+    ```js
     {
         "server": "12345678-1234-1234-1234-123456789abc",
         "name": "AMMA-2F",
@@ -70,7 +70,7 @@ description: OISP Local Server Setup API
     server=?
     ```
     1. JSON: `Content-Type: application/json`
-        ```json
+        ```js
         {
             "authcode": "GHqZZIcH...XAUMmFmN",
             "name": "My smart home",
@@ -115,7 +115,7 @@ description: OISP Local Server Setup API
     + `token`: 本欄位為選項，若有時表示在舊通行令牌有效期間來換取新的通行令牌，此時可不理會 `authcode`。
     + `<本地服務器UUID>`: 請帶【[搜尋本地服務器](#搜尋本地服務器及初始化)】取得的 `server` 欄位值。
 2. 成功時返回 `payload` 的 `token` 將應用於隨後 API 中:
-    ```json
+    ```js
     {
         "server": "<本地服務器UUID>",
         "status": 0,
@@ -142,7 +142,7 @@ description: OISP Local Server Setup API
     + `s_id` 欄位文數字 4 碼，若長度不符時由雲端系統給定。沒有特殊需求時可省略。主要用於 MQTT 通訊中，以節省傳輸量。
     + `s_id` 及 `server` 即使自行指定，但在雲端系統發現有衝突時會主動返回唯一的值。這些值會在返回結果的 `payload` 物件中。
 2. 返回:
-    ```json
+    ```js
     {
         "server": "?",
         "status": 0,
@@ -165,7 +165,7 @@ description: OISP Local Server Setup API
 
     ```
 2. 返回:
-    ```json
+    ```js
     {
       "server": "<本地服務器UUID>",
       "status": 0,
@@ -378,7 +378,7 @@ description: OISP Local Server Setup API
     + 本系統會自動偵測本地區域網路上的 onvif 攝影機，此一過程約要花費 3 秒，請稍加等待。
 
 2. 返回:
-    ```json
+    ```js
     {
         "server": "<本地服務器UUID>",
         "status": 0,
@@ -394,7 +394,7 @@ description: OISP Local Server Setup API
                 "devices": {
                     "version": 2,
                     "name": "AMIoT",
-                    "devices": {
+                    "connector": {
                         "1": { ... },
                         "2": { ... }
                     }
@@ -424,7 +424,7 @@ description: OISP Local Server Setup API
     + `payload` 欄位內容為現有各模組下的相關組態檔 (json 檔):
         + "`目錄名稱`": { json-file1, json-file2, ...}
         + 第一個 `josn-file1` 一定名為 "`_config`": 此為本模組所用的廠商驅動模組、相關日期/版號、及此模組是啟用或停用狀態。基本對應到【[2.取得廠商通訊模組清單](#2-取得廠商通訊模組清單)】的 `drives`，再加上 `activate` 欄位:
-            ```json
+            ```js
             {
                 "vendor": "廠家",
                 "drive": "驅動模組名稱",
@@ -433,13 +433,13 @@ description: OISP Local Server Setup API
                 "activate": false
             }
             ```
-        + 其餘 `json-file2, ...` 則視各驅動模組而有不同，通常有 `devices` ("devices.json") 儲存此驅動模組所擁有的連線資訊、有哪些實體設備、如何對應 (重組) 到 OISP 頁面 (設備/功能) 關係。
+        + 其餘 `json-file2, ...` 則視各驅動模組而有不同。通常以 `devices` (`.json`) 儲存此驅動模組所擁有的連線資訊。每一連線下有哪些實體設備、如何對應 (重組) 到 OISP 頁面 (設備/功能) 關係，則會另儲於 "`XX-config`.json" 下。
         + 每一 `json-file` 對應儲存在該模組目錄下的 "`json-file`.json"。
     + 特殊目錄:
         + "`sys`": 保留給系統模組 (`$00`)，為系統情境、智慧控制、排程、推播用。此系統模組不會在返回物件中。
         + "`onvif`": 為系統攝影機模組 (`$01`)。
     + `onvif` 模組組態如下:
-        ```json
+        ```js
         {
             "_config": {
                 "vendor": "OTHERS",
@@ -472,7 +472,7 @@ description: OISP Local Server Setup API
 
 1. URI = [`<local.web_api>`](#json)`/setup/modules/save`\
 請用 JSON 格式傳輸: `Content-Type: application/json`
-    ```json
+    ```js
     {
         "token": "<通行令牌>",
         "server": "<本地服務器UUID>",
@@ -498,7 +498,7 @@ description: OISP Local Server Setup API
         + 通常以 `devices` 為主要組態來異動，並視需要增刪改其他相關的組態。
 
 2. 返回:
-    ```json
+    ```js
     {
         "server": "<本地服務器UUID>",
         "status": 0,
@@ -526,29 +526,28 @@ description: OISP Local Server Setup API
     + `_config` 為之前的驅動模組物件，用到欄位: `{ vendor, drive }`。
     + `Conn_Object` 為連線必要資訊，視各驅動模組需求而有不同。
     + 範例:
-    ```json
+    ```js
     {
       "server": "<本地服務器UUID>",
       "token": "<通行令牌>",
       "payload": [
-        [ { "vendor": "AMMA", "drive": "minix" },
-          {
-            "host": "192.168.1.114",
+        [
+          { "vendor": "AMMA", "drive": "minix" },
+          { "host": "192.168.1.114",
             "port": 16779,
             "user": "admin",
             "password": "password"
           }
         ],
-        [ { "vendor": "OTHERS", "drive": "onvif" },
+        [
+          { "vendor": "OTHERS", "drive": "onvif" },
           [
-            {
-              "name": "Embedded Net DVR",
+            { "name": "Embedded Net DVR",
               "xaddr": "http://192.168.1.233:80/onvif/device_service",
               "user": "admin",
               "pass": "password"
             },
-            {
-              "name": "Vstarcam",
+            { "name": "Vstarcam",
               "xaddr": "http://192.168.1.232:10080/onvif/device_service",
               "user": "admin",
               "pass": "password"
@@ -560,7 +559,7 @@ description: OISP Local Server Setup API
     ```
 
 2. 返回:
-    ```json
+    ```js
     {
       "server": "<本地服務器UUID>",
       "status": 0,
@@ -638,9 +637,9 @@ description: OISP Local Server Setup API
          9 | Curtain
         11 | AM-260 Dimmer CH-6
         12 | AM-255 Dimmer CH-4
-    + `onvif` 系統攝影機模組 (`$01`): 為一陣列對應請求的返回結果，每一攝影機可能會有多組串流，可能代表不同攝像鏡頭 (頻道)、解析度或幀率 (畫質)。依 `onvif` 規格會含以 `profiles` 表示有多少串流，每一串流為 `{ name, rtsp, resolution, ptz }`
-        + `name`: profile 名稱，做為識別用。
+    + `onvif` 系統攝影機模組 (`$01`): 為一陣列對應請求的返回結果，每一攝影機可能會有多組串流，可能代表不同攝像鏡頭 (頻道)、解析度或幀率 (畫質)。依 `onvif` 規格以 `profiles` 表示有多少串流，每一串流內容如下: `{ name, rtsp, resolution, ptz }`
+        + `name`: profile 名稱，為識別依據。
         + `rtsp`: 串流連線位置。
-        + `resolution`: 畫面解析度 (參考用)，為一陣列兩個元表示寬高，例如: `[1280, 720]` 表示 1280x768 像素
-        + `ptz`: 是否支援鏡頭轉動，以 `x` 表示橫向、`y` 表示縱向、`z` 表示深度 (焦距拉近拉遠)。由於各設備廠家實作問題，不代表有支援就能一定正常操作。
+        + `resolution`: 畫面解析度 (參考用)，為一陣列以兩個元表示寬和高，例如: `[1280, 720]` 表示 1280x768 像素。
+        + `ptz`: 是否支援鏡頭轉動及伸縮，以 `x` 表示橫向轉動、`y` 表示縱向轉動、`z` 表示深度伸縮 (焦距拉近拉遠)。由於各設備廠家實作問題，不代表有支援就一定能正常操作。
 

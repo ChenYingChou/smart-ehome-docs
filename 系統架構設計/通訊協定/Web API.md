@@ -474,6 +474,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/login`
         "server": "<服務器ID>",
         "status": 0,                        // 0:成功, 非零:錯誤
         "payload": {                        // MQTT 用物件 或 錯誤訊息(字串)
+            "user": "<loginid>",            // MQTT 登錄用的帳號
             "clientid": "<client_id>",
             "topic": {
                 "pub": "to/",
@@ -483,7 +484,9 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/login`
     }
     ```
 
-    * `<client_id>`、`topic.pub`、`topic.sub` 於 MQTT 連線登入時使用，參見 [MQTT 通訊協定 - Node JS 範例](./MQTT%20通訊協定.md#node-js-範例)。
+    * `payload`: 在連連接本地服務器和雲端服務器時返回的內容會有不同，請不要混用。
+    * `payload` 中的欄位 `user`、`clientid`、`topic.pub`、`topic.sub` 於 MQTT 連線登入時使用，參見 [MQTT 通訊協定 - Node JS 範例](./MQTT%20通訊協定.md#node-js-範例)。
+    * `user` 欄位: 在連接本地服務器 MQTT 時同請求帶入的 `<登入帳號>`，但若為連雲端 MQTT 則會返回 `<s_id>-<登入帳號>`。MQTT 連線密碼則仍為 `<登入密碼>`。
 
 
 ## MQTT 系統功能轉接
