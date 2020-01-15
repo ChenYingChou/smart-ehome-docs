@@ -239,63 +239,63 @@ description: OISP Local Server Setup API
               "AM-DIO": {
                 "drive": "amma",
                 "descriptions": "8 迴路 DI + 6 迴路燈控模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DI": 8, "DO": 6, "PD": "DO" }
               },
               "AM-206": {
                 "drive": "amma",
                 "descriptions": "6 迴路 DO 模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DO": 6 }
               },
               "AM-210": {
                 "drive": "amma",
                 "descriptions": "10 迴路 DO 模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DO": 10 }
               },
               "AM-210S": {
                 "drive": "amma",
                 "descriptions": "10 迴路燈控模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DO": 10, "PD": "DO" }
               },
               "AM-250": {
                 "drive": "amma",
                 "descriptions": "2 迴路調光模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DM": 2 }
               },
               "AM-255": {
                 "drive": "amma",
                 "descriptions": "4 迴路調光模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DM": 4 }
               },
               "AM-260": {
                 "drive": "amma",
                 "descriptions": "6 迴路調光模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DM": 6 }
               },
               "AM-310": {
                 "drive": "amma",
                 "descriptions": "12 迴路燈控模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DO": 12, "PD": "DO" }
               },
               "AM-311": {
                 "drive": "amma",
                 "descriptions": "12 迴路 DI 模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DI": 12 }
               }
@@ -356,7 +356,7 @@ description: OISP Local Server Setup API
               "Modbus": {
                 "drive": "modbus",
                 "descriptions": "汎用型 Modbus 協定",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true
               }
             }
@@ -641,7 +641,8 @@ description: OISP Local Server Setup API
          5 | AM-311        DI:12
          7 | AM-250 Dimmer CH-2
          8 | AM-210S DO CH-10 PD-10 DO-10
-         9 | Curtain
+         9 | AM-260 Dimmer CH-6 (或 Curtain)
+        10 | AM-260 Dimmer CH-6 (或 Audio)
         11 | AM-260 Dimmer CH-6
         12 | AM-255 Dimmer CH-4
     + `onvif` 系統攝影機模組 (`$01`): 為一陣列對應請求的返回結果，每一攝影機可能會有多組串流，可能代表不同攝像鏡頭 (頻道)、解析度或幀率 (畫質)。依 `onvif` 規格以 `profiles` 表示有多少串流，每一串流內容如下: `{ name, rtsp, resolution, ptz }`
