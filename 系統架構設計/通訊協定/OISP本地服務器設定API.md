@@ -520,36 +520,41 @@ description: OISP Local Server Setup API
 
 1. URI = [`<local.web_api>`](#json)`/setup/modules/testDevices` \
 請用 JSON 格式傳輸: `Content-Type: application/json`
-    ```
+    ```js
     {
         "token": "<通行令牌>",
         "server": "<本地服務器UUID>",
         "payload": [
-            [ _config, Conn_Object ],
+            [ _config, Conn_Object, XX_Config ],
             //...
         ]
     }
     ```
     + `_config` 為之前的驅動模組物件，用到欄位: `{ vendor, drive }`。
     + `Conn_Object` 為連線必要資訊，視各驅動模組需求而有不同。
+    + `XX_Config` 為各模組該連線所需的額外組態: 一般對應到該模組的 `XX-config.json` 內容; 但不是每個驅動模組都需要，在驅動器中指定了 `multiplex` 為 `false` 時就不用此欄位。一般而言，除非驅動模組有特別需求才需此欄位，否則可不用帶此欄。例如: 銨茂驅動模組預設偵測設備編號 1\~10，如要能偵測到編號 20，則要帶入 `{ "_numDevices": 20 }`，偵測數量逾大則等待的回應時間會逾長。
     + 範例:
     ```js
     {
       "server": "<本地服務器UUID>",
       "token": "<通行令牌>",
       "payload": [
-        [
-          { "vendor": "AMMA", "drive": "minix" },
+        [ { "vendor": "AMMA", "drive": "minix" },
           { "host": "192.168.1.114",
             "port": 16779,
             "user": "admin",
             "password": "password"
           }
         ],
-        [
-          { "vendor": "OTHERS", "drive": "onvif" },
-          [
-            { "name": "Embedded Net DVR",
+        [ { "vendor": "AMMA", "drive": "amma" },
+          { "type": "tcp",
+            "host": "192.168.1.38",
+            "port": 5300
+          },
+          { "_numDevices": 20 }
+        ],
+        [ { "vendor": "OTHERS", "drive": "onvif" },
+          [ { "name": "Embedded Net DVR",
               "xaddr": "http://192.168.1.233:80/onvif/device_service",
               "user": "admin",
               "pass": "password"
@@ -572,6 +577,7 @@ description: OISP Local Server Setup API
       "status": 0,
       "payload": [
         [ [2, 4], [1, 8], [0, 9] ],
+        [ [1, 4], [2, 8], [15, 1] ],
         [
           { "name": "Embedded Net DVR",
             "xaddr": "http://192.168.1.233:80/onvif/device_service",
@@ -629,7 +635,7 @@ description: OISP Local Server Setup API
     ```
     + `payload` 為一陣列物件，對應請求 `payload` 的結果。每一結果為:
         + false: 連線失敗，可能 `ip:port` 或帳密錯誤。
-        + true: 連線成功，但不保證連接設備回饋正常。
+        + true: 連線成功 (不保證連接設備回饋正常)，但不支援或無法偵測到有哪些設備。
         + 陣列或物件: 表示連線成功，且能自動偵測連接的設備結果。此一結果視各驅動模組而有不同。
     + 銨茂模組 (含 minix): 為一陣列，每一元素為 `[設備id, 模組id]`。`設備id`: 0~255，`模組id` 如下:
         模組id | 型號及內容
