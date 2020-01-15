@@ -222,6 +222,13 @@ description: OISP Local Server Setup API
                 "shared": false,
                 "types": { "DI": 20 }
               },
+              "AMIoT-2G": {
+                "drive": "AMIoT",
+                "description": "8 迴路 DI + 8 迴路燈控模組",
+                "connection": "tcp",
+                "shared": false,
+                "types": { "DO": 8, "DI": 8 },
+              },
               "AMIoT-36": {
                 "drive": "AMIoT",
                 "descriptions": "6 迴路調光模組",
@@ -361,8 +368,8 @@ description: OISP Local Server Setup API
     + `payload` 為各廠家模組清單，第一層為廠家名稱對應該廠家的所有模組。第二層為該廠家模組清單。
     + 第二層各模組清單中的 `version` 版號分為三組 "`major`.`minor`.`revision`":
         + `majon`: 有重大更新，可能和前一版有部份不相容。所接實體設備及組態會有差異，套用舊有設備及組態時可能會有問題。
-        + `minor`: 增加、修正或調整功能，不影響原有的運作。
-        + `revision`: 通常時指小錯誤的修正，不影響原有的運作。
+        + `minor`: 增加、修正或調整功能，不影響原有的組態設定及運作。
+        + `revision`: 錯誤的修正，不影響原有的組態設定及運作。
     + 其他欄位供參考用。
 
 ### 3. 取得現有模組組態
