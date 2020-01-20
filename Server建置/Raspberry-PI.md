@@ -40,8 +40,9 @@ node -v
 ## then you will get prompted with which
 ## specific version of 10 you wish to install
 
-sudo npm install -g --unsafe-perm axios commander dateformat deep-diff mqtt \
-    bcryptjs sqlite3 amqplib koa koa-bodyparser koa-router node-onvif serialport
+sudo npm install -g --unsafe-perm amqplib axios bcryptjs commander dateformat \
+    deep-diff koa koa-bodyparser koa-router mqtt node-onvif qrcode \
+    qrcode-terminal request serialport sqlite3
 ```
 
 ### 安裝 Web Server nginx 及 php

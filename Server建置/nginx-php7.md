@@ -2,6 +2,8 @@
 
 [[TOC]]
 
+以下安裝過程最好建立腳本來執行，以避免在 shell 下 `<tab>` 鍵值會另有解釋，造成 `patch` 程式的錯誤。
+
 ### 安裝 nginx
 ```sh
 sudo -i
@@ -171,20 +173,27 @@ _EOT_
 
 echo ">>> Patch nginx.conf"
 patch -l -s -N -r - nginx.conf << '_EOT_'
---- nginx.conf~	2018-11-07 13:40:42.000000000 +0800
-+++ nginx.conf	2019-02-20 14:21:23.525859679 +0800
-@@ -49,9 +49,11 @@
-	gzip_disable "msie6";
+--- nginx.conf~	2020-01-21 00:06:43.995614740 +0800
++++ nginx.conf	2020-01-21 00:07:31.454829794 +0800
+@@ -1,4 +1,4 @@
+-user www-data;
++user pi;
+ worker_processes auto;
+ pid /run/nginx.pid;
+ include /etc/nginx/modules-enabled/*.conf;
+@@ -48,9 +48,11 @@
+ 	gzip on;
 
-	# gzip_vary on;
+ 	# gzip_vary on;
 -	# gzip_proxied any;
 +	gzip_min_length 1280;
 +	gzip_proxied no-store no-cache private expired auth;
-	# gzip_comp_level 6;
-	# gzip_buffers 16 8k;
+ 	# gzip_comp_level 6;
+ 	# gzip_buffers 16 8k;
 +	gzip_static on;
-	# gzip_http_version 1.1;
-	# gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+ 	# gzip_http_version 1.1;
+ 	# gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
+
 _EOT_
 
 echo ">>> Create sites-available/default"
@@ -268,8 +277,30 @@ _EOT_
 
 echo ">>> Patch pool.d/www.conf"
 patch -s -N -r - pool.d/www.conf << '_EOT_'
---- www.conf~	2018-08-19 14:56:13.000000000 +0800
-+++ www.conf	2019-02-15 21:17:13.324431309 +0800
+--- www.conf.orig	2019-10-26 22:14:18.000000000 +0800
++++ www.conf	2020-01-21 00:00:28.831889480 +0800
+@@ -20,8 +20,8 @@
+ ; Unix user/group of processes
+ ; Note: The user is mandatory. If the group is not set, the default user's group
+ ;       will be used.
+-user = www-data
+-group = www-data
++user = pi
++group = pi
+
+ ; The address on which to accept FastCGI requests.
+ ; Valid syntaxes are:
+@@ -44,8 +44,8 @@
+ ; BSD-derived systems allow connections regardless of permissions.
+ ; Default Values: user and group are set as the running user
+ ;                 mode is set to 0660
+-listen.owner = www-data
+-listen.group = www-data
++listen.owner = pi
++listen.group = pi
+ ;listen.mode = 0660
+ ; When POSIX Access Control Lists are supported you can set them using
+ ; these options, value is a comma separated list of user/group names.
 @@ -337,7 +337,7 @@
  ; does not stop script execution for some reason. A value of '0' means 'off'.
  ; Available units: s(econds)(default), m(inutes), h(ours), or d(ays)
@@ -277,9 +308,9 @@ patch -s -N -r - pool.d/www.conf << '_EOT_'
 -;request_terminate_timeout = 0
 +request_terminate_timeout = 60s
 
- ; Set open file descriptor rlimit.
- ; Default Value: system defined value
-@@ -420,4 +420,4 @@
+ ; The timeout set by 'request_terminate_timeout' ini option is not engaged after
+ ; application calls 'fastcgi_finish_request' or when application has finished and
+@@ -435,4 +435,4 @@
  ;php_flag[display_errors] = off
  ;php_admin_value[error_log] = /var/log/fpm-php.www.log
  ;php_admin_flag[log_errors] = on
@@ -303,6 +334,6 @@ patch -s -N -r - /lib/systemd/system/php7.3-fpm.service << '_EOT_'
 _EOT_
 
 # 重啟 php-fpm 服務
-systemctl daemo-reload
+systemctl daemon-reload
 service php7.3-fpm restart
 ```
