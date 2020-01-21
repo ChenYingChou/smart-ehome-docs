@@ -1,8 +1,9 @@
 <h2>RabbitMQ-Server 建置</h2>
 
 ```sh
-# 以下所有安裝或設定請用 root 身份執行
+# 以下所有安裝或設定請用 root 身份執行:
 sudo -i
+# 建議將下面指令建成不同腳本 (script) 逐一執行.
 ```
 [[TOC]]
 
@@ -18,22 +19,24 @@ wget -O - "https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbit
 wget -O - 'https://dl.bintray.com/rabbitmq/Keys/rabbitmq-release-signing-key.asc' | sudo apt-key add -
 apt-get install -y apt-transport-https
 
-cat > /etc/apt/sources.list.d/bintray.rabbitmq.list << '_EOT_'
-# This repository provides RabbitMQ packages
-# See below for supported distribution and component values
-deb https://dl.bintray.com/rabbitmq-erlang/debian stretch erlang
-deb https://dl.bintray.com/rabbitmq/debian stretch main
-_EOT_
+#-# # 2019/09 debian Raspbian (buster) 2019-09-26 後已不用下面這段設定
+#-# cat > /etc/apt/sources.list.d/bintray.rabbitmq.list << '_EOT_'
+#-# # This repository provides RabbitMQ packages
+#-# # See below for supported distribution and component values
+#-# deb https://dl.bintray.com/rabbitmq-erlang/debian stretch erlang
+#-# deb https://dl.bintray.com/rabbitmq/debian stretch main
+#-# _EOT_
+#-#
+#-# cat > /etc/apt/preferences.d/erlang << '_EOT_'
+#-# # /etc/apt/preferences.d/erlang
+#-# Package: erlang*
+#-# Pin: release o=Bintray
+#-# #Pin: version 1:21.2.5-1
+#-# Pin-Priority: 1000
+#-# _EOT_
+#-#
+#-# apt-cache policy
 
-cat > /etc/apt/preferences.d/erlang << '_EOT_'
-# /etc/apt/preferences.d/erlang
-Package: erlang*
-Pin: release o=Bintray
-#Pin: version 1:21.2.5-1
-Pin-Priority: 1000
-_EOT_
-
-apt-cache policy
 apt-get update
 apt-get install -t buster -y erlang-nox rabbitmq-server
 ```
@@ -74,6 +77,8 @@ yum install -y librabbitmq-last librabbitmq-last-devel
 # 否則用標準的版本
 yum install -y librabbitmq-last librabbitmq-devel
 ```
+
+---
 
 ### RabbitMQ 設定及更新
 
@@ -383,13 +388,9 @@ mkdir -p api auth cache db lib modules modules/sys sys udpsvr www www/api www/au
 chown -R pi:pi /opt/oisp      # 允許執行期 php-fpm 讀寫 sqlite 資料庫
 chmod 751 /opt/oisp
 cd /opt/oisp
-chmod 755 *
+chmod 751 *
 chmod o-rwx modules sys udpsvr
 chmod g+rwx db cache
-chgrp www-data db cache
-chown www-data:pi db/*.db
-chmod g+w db/*.db
-find . -name '*.json' | xargs -r chmod g+w
 
 RMQ_AUTH="/etc/nginx/sites-available/rabbitmq-auth"
 if [ ! -f ${RMQ_AUTH} ]; then
@@ -420,49 +421,46 @@ fi
 資料庫中密碼是採用 CRYPT_BLOWFISH 加密, PHP 函數為 `password_hash('密碼', PASSWORD_BCRYPT)`, 請將下面對應的密碼欄位 ('`$2y$10...`') 換置掉。
 
 ```sql
---# sqlite3 /data/mq-data/db/oisp.db << '_EOT_'
+--# sqlite3 /oisp/db/oisp.db << '_EOT_'
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
 
 CREATE TABLE IF NOT EXISTS "auth_code" (
-    `code`      text NOT NULL,
-    `at_time`   text NOT NULL,
-    PRIMARY KEY(`code`)
+    "code"      text NOT NULL,
+    "at_time"   text NOT NULL,
+    PRIMARY KEY("code")
 );
 
 CREATE TABLE IF NOT EXISTS "reg_users_map" (
-    `userid`    text NOT NULL,
-    `device`    text NOT NULL,
-    `id`        text NOT NULL UNIQUE,       -- 5 bytes: A~E x 10^4
-    PRIMARY KEY(`userid`, `device`)
+    "userid"    text NOT NULL,
+    "device"    text NOT NULL,
+    "id"        text NOT NULL UNIQUE,       -- 5 bytes: A~E x 10^4
+    PRIMARY KEY("userid", "device")
 );
 
 CREATE TABLE IF NOT EXISTS "reg_users" (
-    `userid`    text NOT NULL,
-    `name`      text NOT NULL,
-    `is_admin`  int NOT NULL DEFAULT 0,     -- admin for 1:reg_users, 2:module
-    `reg_time`  text NOT NULL DEFAULT '',
-    `uid`       text NOT NULL UNIQUE,       -- 4 bytes (62|64)^4
-    PRIMARY KEY(`userid`)
+    "userid"    text NOT NULL,
+    "name"      text NOT NULL,
+    "is_admin"  int NOT NULL DEFAULT 0,     -- admin for 1:reg_users, 2:module
+    "reg_time"  text NOT NULL DEFAULT '',
+    "uid"       text NOT NULL UNIQUE,       -- 4 bytes (62|64)^4
+    PRIMARY KEY("userid")
 );
 
 CREATE TABLE IF NOT EXISTS "users" (
-    `id`        text NOT NULL,
-    `pwd`       text NOT NULL,   -- php: password_hash($password,PASSWORD_BCRYPT);
-    `email`     text NOT NULL DEFAULT '',
-    `mobile`    text NOT NULL DEFAULT '',
-    `token`     text NOT NULL DEFAULT '',
-    `policy`    text NOT NULL DEFAULT '',
-    `lang`      text NOT NULL DEFAULT 'en',
-    `is_active` int NOT NULL DEFAULT 1,
-    `type`      int NOT NULL DEFAULT 0,     -- 0:system, 1:reg_users, 2:module
-    `uid`       text NOT NULL DEFAULT '',   -- copy from reg_users.uid if type >= 1
-    `os`        text NOT NULL DEFAULT '',   -- 'iOS', 'android', 'web'
-    PRIMARY KEY(`id`)
+    "id"        text NOT NULL,
+    "pwd"       text NOT NULL,   -- php: password_hash($password,PASSWORD_BCRYPT);
+    "email"     text NOT NULL DEFAULT '',
+    "mobile"    text NOT NULL DEFAULT '',
+    "token"     text NOT NULL DEFAULT '',
+    "policy"    text NOT NULL DEFAULT '',
+    "lang"      text NOT NULL DEFAULT 'en',
+    "is_active" int NOT NULL DEFAULT 1,
+    "type"      int NOT NULL DEFAULT 0,     -- 0:system, 1:reg_users, 2:module
+    "uid"       text NOT NULL DEFAULT '',   -- copy from reg_users.uid if type >= 1
+    "os"        text NOT NULL DEFAULT '',   -- 'iOS', 'android', 'web'
+    PRIMARY KEY("id")
 );
-
--- INSERT INTO `reg_users` VALUES('admin', 'Administrator', 2, '', 'admin');
--- INSERT INTO `users` VALUES('admin','$2y$10$enWbeal3axm.KP15U.cr.xxxxxxxxxxxx/T9MCGl2xxxxxxxxxxxx','service@amma.com.tw','','','management policymaker monitoring administrator','tw',1,0,'','');
 COMMIT;
 --# _EOT_
 ```
@@ -471,10 +469,10 @@ COMMIT;
 請先依 [nginx-php7](./nginx-php7.md) 說明建立 Web 及 PHP 執行環境。
 
 ```php
-<?php  # /data/mq-data/www/auth/index.php
+<?php  # /oisp/www/auth/index.php
 
-$dbdns = 'sqlite:/data/mq-data/db/oisp.db';
-$logfile = '/data/mq-data/db/log';
+$dbdns = 'sqlite:/oisp/db/oisp.db';
+$logfile = '/oisp/db/log';
 
 function parse_path_info()
 {
@@ -519,7 +517,7 @@ if (array_key_exists('username', $_REQUEST)) {
             foreach($info as $key => $value) {
                 if (is_array($value)) $value = implode(',', $value);
                 switch ($key) {
-                    case 'user':	// username, password
+                    case 'user': // username, password
                         // allow management policymaker monitoring administrator
                         $password = @$_REQUEST['password'];
                         if (password_verify($password, $user['pwd'])) {
@@ -530,10 +528,10 @@ if (array_key_exists('username', $_REQUEST)) {
                         my_log("Response=$response");
                         $stm = null;
                         break;
-                    case 'vhost':	// username, vhost, ip(client)
+                    case 'vhost': // username, vhost, ip(client)
                     case 'resource':// username, vhost, resource(exchange, queue, topic),
                         // name(resource), permission(configure, write, read)
-                    case 'topic':	// username, vhost, resource(topic), name(exchange),
+                    case 'topic': // username, vhost, resource(topic), name(exchange),
                         // permission(write, read), routing_key
                         $response = 'allow';
                         break;
