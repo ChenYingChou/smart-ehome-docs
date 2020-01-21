@@ -21,7 +21,7 @@ description: OISP Local Server Setup API
 
 1. 在區域網路中以 UDP【[尋找本地服務器](https://md.smart-ehome.com/oisp/系統架構設計/通訊協定/Web%20API.md#app-尋找本地服務器)】。
 2. 解碼後得到<b id="json"></b>
-    ```js
+    ```json
     {
         "server": "12345678-1234-1234-1234-123456789abc",
         "name": "AMMA-2F",
@@ -70,7 +70,7 @@ description: OISP Local Server Setup API
     server=?
     ```
     1. JSON: `Content-Type: application/json`
-        ```js
+        ```json
         {
             "authcode": "GHqZZIcH...XAUMmFmN",
             "name": "My smart home",
@@ -83,18 +83,18 @@ description: OISP Local Server Setup API
         ```
 1. 服務器回覆一律為 JSON 格式 (`Content-Type: application/json; charset=utf-8`)\
     以下 JSON 格式中的註解僅為說明用，實際返回不包含這些註解:
-    ```js
-    // 正確
+    ```json
+    // 正確: status = 0 表示成功
     {
         "server": "<本地服務器UUID>",
-        "status": 0,                     	// 0:成功
+        "status": 0,
         "payload": _視各功能返回不同型態的_物件_陣列_或_字串_
     }
 
-    // 錯誤
+    // 錯誤: status 非零: 見 <payload> 錯誤訊息
     {
         "server": "<本地服務器UUID>",
-        "status": 1,                        // 非零:錯誤, 見 <payload> 錯誤訊息
+        "status": 1,
         "payload": "<錯誤訊息>"
     }
     ```
@@ -115,7 +115,7 @@ description: OISP Local Server Setup API
     + `token`: 本欄位為選項，若有時表示在舊通行令牌有效期間來換取新的通行令牌，此時可不理會 `authcode`。
     + `<本地服務器UUID>`: 請帶【[搜尋本地服務器](#搜尋本地服務器及初始化)】取得的 `server` 欄位值。
 2. 成功時返回 `payload` 的 `token` 將應用於隨後 API 中:
-    ```js
+    ```json
     {
         "server": "<本地服務器UUID>",
         "status": 0,
@@ -132,7 +132,7 @@ description: OISP Local Server Setup API
 1. URI = [`<local.web_api>`](#json)`/setup/init`
     ```
     token=<通行令牌>
-    authcode=<雲端會員取得授權碼>
+    CMauthcode=<雲端會員取得授權碼>
     name=<本地服務器名稱>
     server=<本地服務器UUID-可省略>
     s_id=<本地服務器短ID-可省略>
@@ -142,7 +142,7 @@ description: OISP Local Server Setup API
     + `s_id` 欄位文數字 4 碼，若長度不符時由雲端系統給定。沒有特殊需求時可省略。主要用於 MQTT 通訊中，以節省傳輸量。
     + `s_id` 及 `server` 即使自行指定，但在雲端系統發現有衝突時會主動返回唯一的值。這些值會在返回結果的 `payload` 物件中。
 2. 返回:
-    ```js
+    ```json
     {
         "server": "?",
         "status": 0,
@@ -165,7 +165,7 @@ description: OISP Local Server Setup API
 
     ```
 2. 返回:
-    ```js
+    ```json
     {
       "server": "<本地服務器UUID>",
       "status": 0,
@@ -385,7 +385,7 @@ description: OISP Local Server Setup API
     + 本系統會自動偵測本地區域網路上的 onvif 攝影機，此一過程約要花費 3 秒，請稍加等待。
 
 2. 返回:
-    ```js
+    ```json
     {
         "server": "<本地服務器UUID>",
         "status": 0,
@@ -431,7 +431,7 @@ description: OISP Local Server Setup API
     + `payload` 欄位內容為現有各模組下的相關組態檔 (json 檔):
         + "`目錄名稱`": { json-file1, json-file2, ...}
         + 第一個 `josn-file1` 一定名為 "`_config`": 此為本模組所用的廠商驅動模組、相關日期/版號、及此模組是啟用或停用狀態。基本對應到【[2.取得廠商通訊模組清單](#2-取得廠商通訊模組清單)】的 `drives`，再加上 `activate` 欄位:
-            ```js
+            ```json
             {
                 "vendor": "廠家",
                 "drive": "驅動模組名稱",
@@ -446,7 +446,7 @@ description: OISP Local Server Setup API
         + "`sys`": 保留給系統模組 (`$00`)，為系統情境、智慧控制、排程、推播用。此系統模組不會在返回物件中。
         + "`onvif`": 為系統攝影機模組 (`$01`)。
     + `onvif` 模組組態如下:
-        ```js
+        ```json
         {
             "_config": {
                 "vendor": "OTHERS",
@@ -478,8 +478,8 @@ description: OISP Local Server Setup API
 ==☆☆☆ 測試中 ☆☆☆==
 
 1. URI = [`<local.web_api>`](#json)`/setup/modules/save`\
-請用 JSON 格式傳輸: `Content-Type: application/json`
-    ```js
+    請用 JSON 格式傳輸: `Content-Type: application/json`
+    ```json
     {
         "token": "<通行令牌>",
         "server": "<本地服務器UUID>",
@@ -505,7 +505,7 @@ description: OISP Local Server Setup API
         + 通常以 `devices` 為主要組態來異動，並視需要增刪改其他相關的組態。
 
 2. 返回:
-    ```js
+    ```json
     {
         "server": "<本地服務器UUID>",
         "status": 0,
@@ -517,8 +517,8 @@ description: OISP Local Server Setup API
 ### 5. 測試通訊埠及偵測設備
 
 1. URI = [`<local.web_api>`](#json)`/setup/modules/testDevices` \
-請用 JSON 格式傳輸: `Content-Type: application/json`
-    ```js
+    請用 JSON 格式傳輸: `Content-Type: application/json`
+    ```json
     {
         "token": "<通行令牌>",
         "server": "<本地服務器UUID>",
@@ -532,7 +532,7 @@ description: OISP Local Server Setup API
     + `Conn_Object` 為連線必要資訊，視各驅動模組需求而有不同。
     + `XX_Config` 為各模組該連線所需的額外組態: 一般對應到該模組的 `XX-config.json` 內容; 但不是每個驅動模組都需要，在驅動器中指定了 `multiplex` 為 `false` 時就不用此欄位。一般而言，除非驅動模組有特別需求才需此欄位，否則可不用帶此欄。例如: 銨茂驅動模組預設偵測設備編號 1\~10，如要能偵測到編號 20，則要帶入 `{ "_numDevices": 20 }`，偵測數量逾大則等待的回應時間會逾長。
     + 範例:
-    ```js
+    ```json
     {
       "server": "<本地服務器UUID>",
       "token": "<通行令牌>",
@@ -578,7 +578,7 @@ description: OISP Local Server Setup API
     ```
 
 2. 返回:
-    ```js
+    ```json
     {
       "server": "<本地服務器UUID>",
       "status": 0,
