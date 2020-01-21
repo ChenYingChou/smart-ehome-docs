@@ -222,6 +222,13 @@ description: OISP Local Server Setup API
                 "shared": false,
                 "types": { "DI": 20 }
               },
+              "AMIoT-2G": {
+                "drive": "AMIoT",
+                "description": "8 迴路 DI + 8 迴路燈控模組",
+                "connection": "tcp",
+                "shared": false,
+                "types": { "DO": 8, "DI": 8 },
+              },
               "AMIoT-36": {
                 "drive": "AMIoT",
                 "descriptions": "6 迴路調光模組",
@@ -232,63 +239,63 @@ description: OISP Local Server Setup API
               "AM-DIO": {
                 "drive": "amma",
                 "descriptions": "8 迴路 DI + 6 迴路燈控模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DI": 8, "DO": 6, "PD": "DO" }
               },
               "AM-206": {
                 "drive": "amma",
                 "descriptions": "6 迴路 DO 模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DO": 6 }
               },
               "AM-210": {
                 "drive": "amma",
                 "descriptions": "10 迴路 DO 模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DO": 10 }
               },
               "AM-210S": {
                 "drive": "amma",
                 "descriptions": "10 迴路燈控模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DO": 10, "PD": "DO" }
               },
               "AM-250": {
                 "drive": "amma",
                 "descriptions": "2 迴路調光模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DM": 2 }
               },
               "AM-255": {
                 "drive": "amma",
                 "descriptions": "4 迴路調光模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DM": 4 }
               },
               "AM-260": {
                 "drive": "amma",
                 "descriptions": "6 迴路調光模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DM": 6 }
               },
               "AM-310": {
                 "drive": "amma",
                 "descriptions": "12 迴路燈控模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DO": 12, "PD": "DO" }
               },
               "AM-311": {
                 "drive": "amma",
                 "descriptions": "12 迴路 DI 模組",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true,
                 "types": { "DI": 12 }
               }
@@ -349,7 +356,7 @@ description: OISP Local Server Setup API
               "Modbus": {
                 "drive": "modbus",
                 "descriptions": "汎用型 Modbus 協定",
-                "connection": "tcp, 485",
+                "connection": "tcp, serial",
                 "shared": true
               }
             }
@@ -361,8 +368,8 @@ description: OISP Local Server Setup API
     + `payload` 為各廠家模組清單，第一層為廠家名稱對應該廠家的所有模組。第二層為該廠家模組清單。
     + 第二層各模組清單中的 `version` 版號分為三組 "`major`.`minor`.`revision`":
         + `majon`: 有重大更新，可能和前一版有部份不相容。所接實體設備及組態會有差異，套用舊有設備及組態時可能會有問題。
-        + `minor`: 增加、修正或調整功能，不影響原有的運作。
-        + `revision`: 通常時指小錯誤的修正，不影響原有的運作。
+        + `minor`: 增加、修正或調整功能，不影響原有的組態設定及運作。
+        + `revision`: 錯誤的修正，不影響原有的組態設定及運作。
     + 其他欄位供參考用。
 
 ### 3. 取得現有模組組態
@@ -509,40 +516,52 @@ description: OISP Local Server Setup API
 
 ### 5. 測試通訊埠及偵測設備
 
-==☆☆☆ 測試中 ☆☆☆==
-
 1. URI = [`<local.web_api>`](#json)`/setup/modules/testDevices` \
 請用 JSON 格式傳輸: `Content-Type: application/json`
-    ```
+    ```js
     {
         "token": "<通行令牌>",
         "server": "<本地服務器UUID>",
         "payload": [
-            [ _config, Conn_Object ],
+            [ _config, Conn_Object, XX_Config ],
             //...
         ]
     }
     ```
     + `_config` 為之前的驅動模組物件，用到欄位: `{ vendor, drive }`。
     + `Conn_Object` 為連線必要資訊，視各驅動模組需求而有不同。
+    + `XX_Config` 為各模組該連線所需的額外組態: 一般對應到該模組的 `XX-config.json` 內容; 但不是每個驅動模組都需要，在驅動器中指定了 `multiplex` 為 `false` 時就不用此欄位。一般而言，除非驅動模組有特別需求才需此欄位，否則可不用帶此欄。例如: 銨茂驅動模組預設偵測設備編號 1\~10，如要能偵測到編號 20，則要帶入 `{ "_numDevices": 20 }`，偵測數量逾大則等待的回應時間會逾長。
     + 範例:
     ```js
     {
       "server": "<本地服務器UUID>",
       "token": "<通行令牌>",
       "payload": [
-        [
-          { "vendor": "AMMA", "drive": "minix" },
+        [ { "vendor": "AMMA", "drive": "minix" },
           { "host": "192.168.1.114",
             "port": 16779,
             "user": "admin",
             "password": "password"
           }
         ],
-        [
-          { "vendor": "OTHERS", "drive": "onvif" },
-          [
-            { "name": "Embedded Net DVR",
+        [ { "vendor": "AMMA", "drive": "amma" },
+          { "type": "tcp",
+            "host": "192.168.1.38",
+            "port": 5300
+          },
+          { "_numDevices": 20 }
+        ],
+        [ { "vendor": "AMMA", "drive": "AMIoT" },
+          {
+            "type": "tcp",
+            "host": "192.168.1.8",
+            "port": 5088,
+            "user": "AMMA",
+            "password": "123456"
+          }
+        ],
+        [ { "vendor": "OTHERS", "drive": "onvif" },
+          [ { "name": "Embedded Net DVR",
               "xaddr": "http://192.168.1.233:80/onvif/device_service",
               "user": "admin",
               "pass": "password"
@@ -565,6 +584,8 @@ description: OISP Local Server Setup API
       "status": 0,
       "payload": [
         [ [2, 4], [1, 8], [0, 9] ],
+        [ [1, 4], [2, 8], [15, 1] ],
+        [ ['2G', '0021702B0042'] ]
         [
           { "name": "Embedded Net DVR",
             "xaddr": "http://192.168.1.233:80/onvif/device_service",
@@ -622,11 +643,11 @@ description: OISP Local Server Setup API
     ```
     + `payload` 為一陣列物件，對應請求 `payload` 的結果。每一結果為:
         + false: 連線失敗，可能 `ip:port` 或帳密錯誤。
-        + true: 連線成功，但不保證連接設備回饋正常。
+        + true: 連線成功 (不保證連接設備回饋正常)，但不支援或無法偵測到有哪些設備。
         + 陣列或物件: 表示連線成功，且能自動偵測連接的設備結果。此一結果視各驅動模組而有不同。
-    + 銨茂模組 (含 minix): 為一陣列，每一元素為 `[設備id, 模組id]`。`設備id`: 0~255，`模組id` 如下:
+    + 銨茂模組 (含 minix) 返回為一陣列，每一元素為 `[設備id, 模組id]`。`設備id`: 0~255，`模組id` 如下:
         模組id | 型號及內容
-        ------|------
+        :----:|------
          1 | AM-100        DMX 32 迴路
          2 | AM-210        DO:10
          3 | AM-310        PD:10
@@ -634,9 +655,20 @@ description: OISP Local Server Setup API
          5 | AM-311        DI:12
          7 | AM-250 Dimmer CH-2
          8 | AM-210S DO CH-10 PD-10 DO-10
-         9 | Curtain
+         9 | AM-260 Dimmer CH-6 (或 Curtain)
+        10 | AM-260 Dimmer CH-6 (或 Audio)
         11 | AM-260 Dimmer CH-6
         12 | AM-255 Dimmer CH-4
+    + AMIoT 模組返回為一陣列，每一元素為 `[設備type, MAC]`。`設備type` 編號定義說明如下:
+      類型 | 編號 (十位數) | 編號 (個位數) CH 數
+      :---:|:---:|----
+      DO	    | 0	| 範圍 (1-9 A-Z)
+      DI	    | 1	| 範圍 (1-9 A-Z)
+      DIDO    | 2 | 範圍 (1-9 A-Z)
+      Dimmer  | 3 | 範圍 (1-9 A-Z)
+      Switch  | 4 | 範圍 (1-9 A-Z)
+      Gateway	| 5	| 固定 (0)
+      Curtain	| 6	| 範圍 (1-9 A-Z)
     + `onvif` 系統攝影機模組 (`$01`): 為一陣列對應請求的返回結果，每一攝影機可能會有多組串流，可能代表不同攝像鏡頭 (頻道)、解析度或幀率 (畫質)。依 `onvif` 規格以 `profiles` 表示有多少串流，每一串流內容如下: `{ name, rtsp, resolution, ptz }`
         + `name`: profile 名稱，為識別依據。
         + `rtsp`: 串流連線位置。
