@@ -97,9 +97,11 @@ read_password() {
     [ -z "$1" ] && return
     local pwdsz=$(shuf -i 12-30 -n 1)
     local password
-    echo ""
-    echo -n "Enter password for $1: "
-    read password
+    if [ -t 0 ]; then
+        echo ""
+        echo -n "Enter password for $1: "
+        read password
+    fi
     [ -z "${password}" ] && password=$(< /dev/urandom tr -dc _A-Za-z0-9- | head -c${pwdsz})
     [ "$(expr substr "$password" 1 1)" = "-" ] && password="x${password}"
     eval $1Pwd="$password"
@@ -145,6 +147,8 @@ vhost = oisp
 _EOT_
 
 chmod go-rwx ~/.rabbitmq*
+cp -af ~/.rabbitmq* /home/pi/
+chown pi:pi /home/pi/.rabbitmq*
 
 echo -e "\n>>> Enable rabbitmq plugins: web-management, mqtt, web-mqtt, web-auth"
 # RabbitMQ: amqp            # tcp:5672 , SSL:5671
@@ -152,13 +156,13 @@ echo -e "\n>>> Enable rabbitmq plugins: web-management, mqtt, web-mqtt, web-auth
 # rabbitmq_mqtt             # tcp:1883 , SSL:8883
 # rabbitmq_web_mqtt         # tcp:15675, SSL:15674
 rabbitmq-plugins enable \
-	rabbitmq_amqp1_0 \
+    rabbitmq_amqp1_0 \
     rabbitmq_event_exchange \
-	rabbitmq_auth_backend_cache \
-	rabbitmq_auth_backend_http \
-	rabbitmq_management \
-	rabbitmq_mqtt \
-	rabbitmq_web_mqtt
+    rabbitmq_auth_backend_cache \
+    rabbitmq_auth_backend_http \
+    rabbitmq_management \
+    rabbitmq_mqtt \
+    rabbitmq_web_mqtt
 
 echo -e "\n>>> Create vhost: oisp"
 rabbitmqctl add_vhost oisp
@@ -179,27 +183,27 @@ if [ ! -x /usr/bin/rabbitmqadmin ]; then
     wget -O /usr/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
     chmod +x /usr/bin/rabbitmqadmin
     patch -s -N -r - /usr/bin/rabbitmqadmin << '_EOT_'
---- rabbitmqadmin-3.7.13~	2019-03-21 14:02:15.209366755 +0800
-+++ rabbitmqadmin-3.7.13	2019-03-21 14:03:13.225569011 +0800
-@@ -25,6 +25,7 @@
+--- rabbitmqadmin~      2020-01-21 19:10:50.000000000 +0800
++++ rabbitmqadmin       2020-01-21 19:13:54.745474073 +0800
+@@ -35,6 +35,7 @@
  import socket
  import ssl
  import traceback
 +import time
 
- try:
-     from signal import signal, SIGPIPE, SIG_DFL
-@@ -71,7 +72,7 @@
+ if sys.version_info[0] == 2:
+     from ConfigParser import ConfigParser, NoSectionError
+@@ -55,7 +56,7 @@
 
- VERSION = '3.7.13'
+ VERSION = '3.7.8'
 
--LISTABLE = {'connections': {'vhost': False, 'cols': ['name', 'user', 'channels']},
-+LISTABLE = {'connections': {'vhost': False, 'cols': ['name', 'user', 'connected_at']},
+-LISTABLE = {'connections': {'vhost': False, 'cols': ['name','user','channels']},
++LISTABLE = {'connections': {'vhost': False, 'cols': ['name','user','connected_at']},
              'channels':    {'vhost': False, 'cols': ['name', 'user']},
              'consumers':   {'vhost': True},
              'exchanges':   {'vhost': True,  'cols': ['name', 'type']},
-@@ -500,7 +501,9 @@
-
+@@ -459,7 +460,9 @@
+     sys.exit(1)
 
  def maybe_utf8(s):
 -    if isinstance(s, int):
