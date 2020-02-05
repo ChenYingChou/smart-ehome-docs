@@ -9,7 +9,7 @@ description: OISP Local Server Setup API
 1. 瀏覽【[登入雲端會員](https://cc.smart-ehome.com/member/login)】
 1. 還沒有帳號者請先【[註冊為會員](https://cc.smart-ehome.com/member/register)】
 1. 一個會員可建立多部本地服務器，不需為每一服務器註冊獨立的會員帳號。
-1. App 以 WebView 登入後在會員頁面，可用 WebView API 抓取到授權碼 (以下 [本地服務器初始化](#1-本地服務器初始化) 會用到): \
+1. App 以 WebView 登入後在會員頁面，可用 WebView API 抓取到授權碼 (以下 [雲端服務系統註冊](#1-雲端服務系統註冊) 會用到): \
   `document.querySelector('#authcode').textContent`
 ![範例1](https://i.imgur.com/xbtX66Z.png)
 1. 或使用【[取得會員授權碼 API](https://cc.smart-ehome.com/member/authcode)】, 返回為 JSON 物件:
@@ -40,7 +40,7 @@ description: OISP Local Server Setup API
         }
     }
     ```
-3. 若 `server` 或 `s_id` 為空的則表示本地服務器尚未向雲端主機註冊，請繼續執行 [本地服務器初始化](#1-本地服務器初始化)。
+3. 若 `server` 或 `s_id` 為空的則表示本地服務器尚未向雲端主機註冊，請繼續執行 [雲端服務系統註冊](#1-雲端服務系統註冊)。
 
 
 ## 管理本地服務器組態結構
@@ -55,7 +55,7 @@ description: OISP Local Server Setup API
 
 1. 為了安全起見 Web API 一律採用 POST 方法。
 1. `POST` 資料內容可選擇下列兩種表示法，請於 HTTP 標題指定 `Content-Type`:\
-    以 [本地服務器初始化](#1-本地服務器初始化) API 說明:
+    以 [雲端服務系統註冊](#1-雲端服務系統註冊) API 說明:
     ```
     token=<通行令牌>
     authcode=<雲端會員授權碼>
@@ -127,7 +127,7 @@ description: OISP Local Server Setup API
     ```
     + `expires_in`: 表示 `<通行令牌>` 的有效時間秒數。系統檢查通行令牌允許逾時五分鐘內視為有效。
 
-### 1. 本地服務器初始化
+### 1. 雲端服務系統註冊
 
 1. URI = [`<local.web_api>`](#json)`/setup/init`
     ```
