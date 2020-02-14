@@ -129,7 +129,7 @@ description: OISP Local Server Setup API
 
 ### 1. 雲端服務系統註冊
 
-1. URI = [`<local.web_api>`](#json)`/setup/init`
+1. URI = [`<local.web_api>`](#json)`/setup/register`
     ```
     token=<通行令牌>
     CMauthcode=<雲端會員取得授權碼>
@@ -530,7 +530,8 @@ description: OISP Local Server Setup API
     ```
     + `_config` 為之前的驅動模組物件，用到欄位: `{ vendor, drive }`。
     + `Conn_Object` 為連線必要資訊，視各驅動模組需求而有不同。
-    + `XX_Config` 為各模組該連線所需的額外組態: 一般對應到該模組的 `XX-config.json` 內容; 但不是每個驅動模組都需要，在驅動器中指定了 `multiplex` 為 `false` 時就不用此欄位。一般而言，除非驅動模組有特別需求才需此欄位，否則可不用帶此欄。例如: 銨茂驅動模組預設偵測設備編號 1\~10，如要能偵測到編號 20，則要帶入 `{ "_numDevices": 20 }`，偵測數量逾大則等待的回應時間會逾長。
+    + `XX_Config` 為各模組該連線所需的額外組態: 一般對應到該模組的 `XX-config.json` 內容; 但不是每個驅動模組都需要，在驅動器中指定了 `multiplex` 為 `false` 時就不用此欄位。一般而言，除非驅動模組有特別需求才需此欄位，否則可不用帶此欄。例如: 銨茂驅動模組預設偵測設備編號 1\~10，如要能偵測到編號 20，則要帶入 `{ "_numDevices": 20 }`，偵測數量越大則等待的回應時間會越長，每次的查詢約要耗時 0.2 秒，預設查詢到編號 10，約需時 2 秒。
+    + 請注意: 系統攝影機模組`onvif` 的密碼欄位關鍵字為 `pass`，而非 `password`。
     + 範例:
     ```json
     {
@@ -583,8 +584,8 @@ description: OISP Local Server Setup API
       "server": "<本地服務器UUID>",
       "status": 0,
       "payload": [
-        [ [2, 4], [1, 8], [0, 9] ],
-        [ [1, 4], [2, 8], [15, 1] ],
+        [ [2, 4, "AM-DIO"], [1, 8, "AM-210S"], [0, 9, "AM-CURTAIN"] ],
+        [ [1, 7, "AM-250"], [2, 11, "AM-260"], [15, 1, "AM-100"] ],
         [ ["AMIoT-2G", "0021702B0042"] ]
         [
           { "name": "Embedded Net DVR",
@@ -645,7 +646,7 @@ description: OISP Local Server Setup API
         + false: 連線失敗，可能 `ip:port` 或帳密錯誤。
         + true: 連線成功 (不保證連接設備回饋正常)，但不支援或無法偵測到有哪些設備。
         + 陣列或物件: 表示連線成功，且能自動偵測連接的設備結果。此一結果視各驅動模組而有不同。
-    + 銨茂模組 (含 minix) 返回為一陣列，每一元素為 `[設備id, 模組id]`。`設備id`: `0~255`，`模組id` 說明如下:
+    + 銨茂模組 (含 minix) 返回為一陣列，每一元素為 `[設備id, 模組id, 模組型號]`。`設備id`: `0~255`，`模組id` 說明如下:
         模組id | 型號及內容
         :----:|----
          1 | AM-100        DMX 32 迴路
@@ -669,7 +670,7 @@ description: OISP Local Server Setup API
         Switch  | 4 | 範圍 (1-9 A-Z)
         Gateway | 5 | 固定 (0)
         Curtain | 6 | 範圍 (1-9 A-Z)
-    + `onvif` 系統攝影機模組 (`$01`): 為一陣列對應請求的返回結果，每一攝影機可能會有多組串流，可能代表不同攝像鏡頭 (頻道)、解析度或幀率 (畫質)。依 `onvif` 規格以 `profiles` 表示有多少串流，每一串流內容如下: `{ name, rtsp, resolution, ptz }`
+    + `onvif` 系統攝影機模組 (`$01`): 為一陣列對應請求的返回結果，每一攝影機可能會有多組串流，分別代表不同攝像鏡頭 (頻道)、解析度或幀率 (畫質)。依 `onvif` 規格以 `profiles` 表示有多少串流，每一串流內容如下: `{ name, rtsp, resolution, ptz }`
         + `name`: profile 名稱，為識別依據。
         + `rtsp`: 串流連線位置。
         + `resolution`: 畫面解析度 (參考用)，為一陣列以兩個元表示寬和高，例如: `[1280, 720]` 表示 1280x768 像素。
