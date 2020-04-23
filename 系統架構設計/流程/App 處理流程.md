@@ -14,7 +14,7 @@
 
 ## 登入系統
 
-參見 [Web API - App 登錄取得取得 MQTT 通訊時所需的資訊 (login)](../通訊協定/Web%20API.md#app-登錄取得取得-mqtt-通訊時所需的資訊-login)
+參見 [Web API - App 登入取得 MQTT 通訊時所需的資訊 (login)](../通訊協定/Web%20API.md#app-登入取得-mqtt-通訊時所需的資訊-login)
 
 * 取得 MQTT 通訊時所需的資訊，即 Web API 返回的 `payload`:
     ```js

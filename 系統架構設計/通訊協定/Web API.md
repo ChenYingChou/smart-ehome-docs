@@ -450,7 +450,7 @@ URI = [`<local.web_api>`](#json)`/delete_reg_user`
     * 用戶被刪除後，必須重新註冊設備後方可繼續使用本系統。
 
 
-## App 登錄取得取得 MQTT 通訊時所需的資訊 (login)
+## App 登入取得 MQTT 通訊時所需的資訊 (login)
 
 URI = [`<WebAPI>`](#網站連線主機名稱)`/login`
 
@@ -474,7 +474,7 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/login`
         "server": "<服務器ID>",
         "status": 0,                        // 0:成功, 非零:錯誤
         "payload": {                        // MQTT 用物件 或 錯誤訊息(字串)
-            "user": "<loginid>",            // MQTT 登錄用的帳號
+            "user": "<loginid>",            // MQTT 登入用的帳號
             "clientid": "<client_id>",
             "topic": {
                 "pub": "to/",
@@ -845,14 +845,14 @@ URI = [`<WebAPI>`](#網站連線主機名稱)`/messages`
 
 * `status = 1` 表示一般性錯誤，使用者請依訊息做對應處理即可，程式不需特別處理。除非在 API 中另有說明。
 * `status = 2` 請依 API 中說明處理，例如 [App 設備第一次要先向本地服務器註冊](#app-設備第一次要先向本地服務器註冊-create_device)。
-* `status = 3` 登錄失敗，帳號/密碼錯誤，或帳號已被移除，[請重新註冊設備](#app-設備第一次要先向本地服務器註冊-create_device)。
+* `status = 3` 登入失敗，帳號/密碼錯誤，或帳號已被移除，[請重新註冊設備](#app-設備第一次要先向本地服務器註冊-create_device)。
 * `status >= 10` 表示進入系統資料庫前發生錯誤，無法進行用戶、帳號授權及登入等處理:
 
     status | 訊息 | 處理措施
     :---:|:---:|---
     10 | 無效的服務器 ID | 請確認您所連接是正確的服務器, 或是請重新用 [UDP 尋找本地服務器](#app-尋找本地服務器)
     11 | 未指派命令 | 請檢查 URI "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 格式是否正確, 此錯誤表示您未指定 `<命令>`
-    12 | 無效的命令 | 請檢查 URI "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 中的 `<命令>` 是否正確,<br>如: App 登錄 [`https://dev.smart-ehome.com/api/login`](#app-登錄取得取得-mqtt-通訊時所需的資訊-login)
+    12 | 無效的命令 | 請檢查 URI "[`<WebAPI>`](#網站連線主機名稱)/`<命令>`" 中的 `<命令>` 是否正確,<br>如: App 登入 [`https://dev.smart-ehome.com/api/login`](#app-登入取得-mqtt-通訊時所需的資訊-login)
 
 
 ## 客端 UDP 完整範例

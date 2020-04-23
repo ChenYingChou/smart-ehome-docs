@@ -83,7 +83,7 @@
  ```json
  // 正確
 {
-	"xxx-xxx-xxx-xxx-xxx": {		// <服務器ID>
+	"xxx-xxx-xxx-xxx-xxx": {		// <伺服器ID>
 		"xxx-xxx":{					// <設備名稱>
 			"uid": "<登入帳號>",
 			"pwd": "<登入密碼>",
@@ -97,8 +97,40 @@
 }
 
  ```
+**==20200417異動==**
+參考[App 登入取得 MQTT 通訊時所需的資訊](http://md.smart-ehome.com/oisp/%E7%B3%BB%E7%B5%B1%E6%9E%B6%E6%A7%8B%E8%A8%AD%E8%A8%88/%E9%80%9A%E8%A8%8A%E5%8D%94%E5%AE%9A/Web%20API.md#app-%E7%99%BB%E9%8C%84%E5%8F%96%E5%BE%97%E5%8F%96%E5%BE%97-mqtt-%E9%80%9A%E8%A8%8A%E6%99%82%E6%89%80%E9%9C%80%E7%9A%84%E8%B3%87%E8%A8%8A-login)
 
- - 服務器連線資訊 ServerInfo.txt（from server）
+
+ ```json
+ // 正確
+{
+	"xxx-xxx-xxx-xxx-xxx": {		// <伺服器ID>
+		"xxx-xxx":{					// <設備名稱>
+			"uid": "<登入帳號>",
+			"pwd": "<登入密碼>",
+			"local": {
+				"user": "<MQTT登入帳號>",
+				"clientid": "<client_id>",
+				"topic": {
+					"pub": "to/",
+					"sub": ["from/#", "to/<uid>", "to/<cid>"]
+				}
+			},
+			"inet": {
+				"user": "<MQTT登入帳號>",
+				"clientid": "<client_id>",
+				"topic": {
+					"pub": "to/",
+					"sub": ["from/#", "to/<uid>", "to/<cid>"]
+				}
+			}
+		}
+	}
+}
+
+ ```
+
+ - 伺服器連線資訊 ServerInfo.txt（from server）
 加密：Base64 >  AES  CTR 
 解密 :  AES  CTR > Base64
 
@@ -170,7 +202,7 @@
  - 頁面清單  pageList.json (local)
 
 > **icon_id** : 為萬用表單（080)時，img_id 才會有效，代表該頁icon圖示(預設為086圖示)。
-> **moduleID** : 模組的ID，不同模組會有相同deviceID，非萬用表單時使用。
+> **moduleID** : 模組的ID，不同模組會有相同deviceID，非萬用表單時使用。		
 **deviceID** : 模組的設備ID，非萬用表單時使用。
 
 > <span style="color:red;background-color:yellow">檔案排序：</span>
