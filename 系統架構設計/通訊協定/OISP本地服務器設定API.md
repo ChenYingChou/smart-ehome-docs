@@ -134,10 +134,13 @@ description: OISP Local Server Setup API
     token=<通行令牌>
     CMauthcode=<雲端會員取得授權碼>
     name=<本地服務器名稱>
+    region=<地區-可省略>
     server=<本地服務器UUID-可省略>
     s_id=<本地服務器短ID-可省略>
     ```
     + `token`: 通行令牌為溝通本地服務器的授權依據。
+    + `CMauthcode`: 由 [雲端會員取得授權碼](#雲端會員取得授權碼) 第 4 或 5 項取得的 `authcode`。
+    + `region`: 地區，目前以網頁瀏覽語系識別代碼 [Web browser language identification codes](https://www.metamodpro.com/browser-language-codes) 表示之。主要用於本地主機行事曆區別及 MQTT 系統發出訊息用。若未指定則以瀏覽器語系為主，參見 [Web API 訊息語系](https://md.smart-ehome.com/oisp/系統架構設計/通訊協定/Web%20API.md#訊息語系-lang)。
     + `server` 欄位為 UUID 格式，若格式不符則由雲端系統給定。此欄位會原封不動在返回結果中 (和 `status` 同一層)，可用以識別是由哪個送出的請求。沒有特殊需求時可省略本欄由系統決定。
     + `s_id` 欄位文數字 4 碼，若長度不符時由雲端系統給定。沒有特殊需求時可省略。主要用於 MQTT 通訊中，以節省傳輸量。
     + `s_id` 及 `server` 即使自行指定，但在雲端系統發現有衝突時會主動返回唯一的值。這些值會在返回結果的 `payload` 物件中。
@@ -461,21 +464,19 @@ description: OISP Local Server Setup API
                 "devices": {}
             },
             "onvif": {
-                "http://192.168.1.233:28080/onvif/device_service": {
+                "http://192.168.1.233:80/onvif/device_service": {
                     "name": "Embedded Net DVR",
-                    "xaddr": "http://192.168.1.233:28080/onvif/device_service"
+                    "xaddr": "http://192.168.1.233:80/onvif/device_service"
                 },
-                "http://192.168.1.232:19980/onvif/device_service": {
+                "http://192.168.1.232:10080/onvif/device_service": {
                     "name": "Vstarcam",
-                    "xaddr": "http://192.168.1.232:19980/onvif/device_service"
+                    "xaddr": "http://192.168.1.232:10080/onvif/device_service"
                 }
             }
         ```
         + `onvif` 欄位為系統自動偵測所得 (約花費 3 秒)，此例中偵測到兩組攝影機，每組攝影機串流數視各廠牌設備而不同。可用此資訊再呼叫【[5.測試通訊埠及偵測設備](#5-測試通訊埠及偵測設備)】API 取得詳細串流資訊，以供組態設定。
 
 ### 4. 儲存現有模組組態
-
-==☆☆☆ 測試中 ☆☆☆==
 
 1. URI = [`<local.web_api>`](#json)`/setup/modules/save`\
     請用 JSON 格式傳輸: `Content-Type: application/json`
@@ -673,6 +674,6 @@ description: OISP Local Server Setup API
     + `onvif` 系統攝影機模組 (`$01`): 為一陣列對應請求的返回結果，每一攝影機可能會有多組串流，分別代表不同攝像鏡頭 (頻道)、解析度或幀率 (畫質)。依 `onvif` 規格以 `profiles` 表示有多少串流，每一串流內容如下: `{ name, rtsp, resolution, ptz }`
         + `name`: profile 名稱，為識別依據。
         + `rtsp`: 串流連線位置。
-        + `resolution`: 畫面解析度 (參考用)，為一陣列以兩個元表示寬和高，例如: `[1280, 720]` 表示 1280x768 像素。
+        + `resolution`: 畫面解析度 (參考用)，為一陣列以兩個元表示寬和高，例如: `[1280, 720]` 表示 1280x720 像素。
         + `ptz`: 是否支援鏡頭轉動及伸縮，以 `x` 表示橫向轉動、`y` 表示縱向轉動、`z` 表示深度伸縮 (焦距拉近拉遠)。由於各設備廠家實作問題，不代表有支援就一定能正常操作。
 
