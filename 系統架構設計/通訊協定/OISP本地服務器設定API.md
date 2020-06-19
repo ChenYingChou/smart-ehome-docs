@@ -51,6 +51,7 @@ description: OISP Local Server Setup API
 + [測試通訊埠及偵測設備](#5-測試通訊埠及偵測設備)
 + [暫停執行模組](#6-暫停執行模組)
 + [啟動執行模組](#7-啟動執行模組)
++ [查詢執行模組](#8-查詢執行模組)
 
 
 ## Web API 一律採用 POST 方法
@@ -689,6 +690,15 @@ token=<通行令牌>
 server=<本地服務器UUID>
 ```
 
+返回:
+```json
+{
+    "server": "<本地服務器UUID>",
+    "status": 0,
+    "payload": "stop oisp-modules"
+}
+```
+
 ### 7. 啟動執行模組
 
 URI = [`<local.web_api>`](#json)`/setup/modules/start`
@@ -697,3 +707,32 @@ URI = [`<local.web_api>`](#json)`/setup/modules/start`
 token=<通行令牌>
 server=<本地服務器UUID>
 ```
+
+返回:
+```json
+{
+    "server": "<本地服務器UUID>",
+    "status": 0,
+    "payload": "start oisp-modules"
+}
+```
++ 若模組已在執行中，再次啟動模組並不影響現有執行中的模組，這次的命令視同無作用。
+
+### 8. 查詢執行模組
+
+URI = [`<local.web_api>`](#json)`/setup/modules/status`
+
+```
+token=<通行令牌>
+server=<本地服務器UUID>
+```
+
+返回:
+```json
+{
+    "server": "<本地服務器UUID>",
+    "status": 0,
+    "payload": 2
+}
+```
++ `payload` 返回為有多少模組正在執行中，若為 `0` 表示模組已被暫停執行。
