@@ -536,6 +536,7 @@ description: OISP Local Server Setup API
     + `Conn_Object` 為連線必要資訊，視各驅動模組需求而有不同。
     + `XX_Config` 為各模組該連線所需的額外組態: 一般對應到該模組的 `XX-config.json` 內容; 但不是每個驅動模組都需要，在驅動器中指定了 `multiplex` 為 `false` 時就不用此欄位。一般而言，除非驅動模組有特別需求才需此欄位，否則可不用帶此欄。例如: 銨茂驅動模組預設偵測設備編號 1\~10，如要能偵測到編號 20，則要帶入 `{ "_numDevices": 20 }`，偵測數量越大則等待的回應時間會越長，每次的查詢約要耗時 0.2 秒，預設查詢到編號 10，約需時 2 秒。
     + 請注意: 系統攝影機模組`onvif` 的密碼欄位關鍵字為 `pass`，而非 `password`。
+    + `綠米空調伴侣` 會自動偵測網關及子設備，偵測等待時間為 1 秒，只要指定 `_config` 即可。
     + 範例:
     ```json
     {
@@ -577,6 +578,8 @@ description: OISP Local Server Setup API
               "pass": "password"
             }
           ]
+        ],
+        [ { "vendor": "LUMI", "drive": "acpartner" }
         ]
       ]
     }
@@ -591,8 +594,7 @@ description: OISP Local Server Setup API
         [ [2, 4, "AM-DIO"], [1, 8, "AM-210S"], [0, 9, "AM-CURTAIN"] ],
         [ [1, 7, "AM-250"], [2, 11, "AM-260"], [15, 1, "AM-100"] ],
         [ ["AMIoT-2G", "0021702B0042"] ]
-        [
-          { "name": "Embedded Net DVR",
+        [ { "name": "Embedded Net DVR",
             "xaddr": "http://192.168.1.233:80/onvif/device_service",
             "user": "admin",
             "pass": "password",
@@ -642,6 +644,91 @@ description: OISP Local Server Setup API
               }
             ]
           }
+        ],
+        [ { "gateways": [
+              { "protocal": "UDP",
+                "port": "9898",
+                "sid": "50ec50c6ea1a",
+                "model": "acpartner.v3",
+                "proto_version": "2.0.2",
+                "ip": "192.168.1.153",
+                "token": "dLKqn54LjwcBqsz8"
+              }
+            ],
+            "xxconfig": [
+              { "devList": {
+                  "01": "50ec50c6ea1a",
+                  "02": "158d0002f24482"
+                },
+                "devices": {
+                  "01": {
+                    "name": "空調伴侶",
+                    "type": "acpartner.v3",
+                    "icon_id": "087",
+                    "functions": {
+                      "01": {
+                        "name": "電源",
+                        "type": 3,
+                        "value": [ { "=": [ { "0": "關" }, { "1": "開" } ] } ]
+                      },
+                      "02": {
+                        "name": "模式",
+                        "type": 3,
+                        "value": [ { "=": [ { "0": "Heat ▼" }, { "1": "Cool ▼" }, { "2": "Auto ▼" }, { "3": "Dry ▼" }, { "4": "Wind ▼" }, { "5": "Circle ▼" } ] } ]
+                      },
+                      "03": {
+                        "name": "風速",
+                        "type": 3,
+                        "value": [ { "=": [ { "0": "Low ▼" }, { "1": "Middle ▼" }, { "2": "High ▼" }, { "3": "Auto ▼" }, { "4": "Circle ▼" } ] } ]
+                      },
+                      "04": {
+                        "name": "風向",
+                        "type": 3,
+                        "value": [ { "=": [ { "0": "Unswing" }, { "1": "Swing" } ] } ]
+                      },
+                      "05": {
+                        "name": "設定溫度",
+                        "type": 3,
+                        "value": [ { "=": [ { "17": "17℃ ▼" }, { "18": "18℃ ▼" }, { "19": "19℃ ▼" }, { "20": "20℃ ▼" }, { "21": "21℃ ▼" }, { "22": "22℃ ▼" }, { "23": "23℃ ▼" }, { "24": "24℃ ▼" }, { "25": "25℃ ▼" }, { "26": "26℃ ▼" }, { "27": "27℃ ▼" }, { "28": "28℃ ▼" }, { "29": "29℃ ▼" }, { "30": "30℃ ▼" } ] } ]
+                      },
+                      "06": {
+                        "name": "供電",
+                        "type": 3,
+                        "value": "2"
+                      },
+                      "07": {
+                        "name": "光照度",
+                        "type": 1,
+                        "value": "0~1200"
+                      },
+                      "08": {
+                        "name": "音效",
+                        "type": 3,
+                        "value": [ { "=": [ { "0": "停止播放" }, { "10000": "警車聲 ▼" }, { "1": "消防車聲 ▼" }, { "2": "警報聲_1 ▼" }, { "3": "警報聲_2 ▼" }, { "4": "鬼聲 ▼" }, { "5": "槍聲 ▼" }, { "6": "機槍聲 ▼" }, { "7": "防空警報聲 ▼" }, { "8": "狗叫聲 ▼" }, { "10": "叮咚 ▼" }, { "11": "敲木魚聲 ▼" }, { "12": "搞笑聲_1 ▼" }, { "13": "電話鈴聲_2 ▼" }, { "20": "輕快鈴聲 ▼" }, { "21": "節奏鈴聲 ▼" }, { "22": "撥弦樂器 ▼" }, { "23": "輕音樂 ▼" }, { "24": "敲擊樂器 ▼" }, { "25": "音效_1 ▼" }, { "26": "音效_2 ▼" }, { "27": "音效_3 ▼" }, { "28": "音效_4 ▼" }, { "29": "音效_5 ▼" } ] } ]
+                      }
+                    }
+                  },
+                  "02": {
+                    "name": "無線開關（升級版）",
+                    "type": "sensor_switch.aq3",
+                    "icon_id": "071",
+                    "functions": {
+                      "01": {
+                        "name": "按鍵",
+                        "type": 1,
+                        "value": [ { "=": [ { "0": "偵測中" }, { "1": "單擊" }, { "2": "雙擊" }, { "3": "搖一搖" } ] } ]
+                      },
+                      "02": {
+                        "name": "電池電力",
+                        "type": 1,
+                        "value": "***mv"
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
         ]
       ]
     }
@@ -679,6 +766,36 @@ description: OISP Local Server Setup API
         + `rtsp`: 串流連線位置。
         + `resolution`: 畫面解析度 (參考用)，為一陣列以兩個元表示寬和高，例如: `[1280, 720]` 表示 1280x720 像素。
         + `ptz`: 是否支援鏡頭轉動及伸縮，以 `x` 表示橫向轉動、`y` 表示縱向轉動、`z` 表示深度伸縮 (焦距拉近拉遠)。由於各設備廠家實作問題，不代表有支援就一定能正常操作。
+    + `綠米空調伴侣` 返回只有一個物件的陣列，物件內容如下:
+        + `gateways`: 為網關物件陣列，包含網關序號、型號等基本資訊。
+        + `xxconfig`: 對應每一網關的 `xx-config.json` 組態，包含每一子設備的序號及功能。
+        + 目前支援以下設備:
+            型號 | 名稱 | 參數
+            ----|:----:|----
+            `acpartner.v3` | 空調伴侶 | `on_off_cfg`, `mode_cfg`, `ws_cfg`, `swing_cfg`, `temp_cfg`
+            `plug` | 智能插座 | `channel_0`, `load_power`, `energy_consumed`
+            `ctrl_86plug` | 墙壁插座 | `channel_0`, `load_power`, `energy_consumed`
+            `ctrl_86plug.aq1` | 墙壁插座 | `channel_0`, `load_power`, `energy_consumed`
+            `ctrl_ln1` | 牆壁開關(零火線單鍵版) | `channel_0`
+            `ctrl_ln1.aq1` | 牆壁開關(零火線單鍵版) | `channel_0`
+            `lctrl_ln2` | 牆壁開關(零火線雙鍵版) | `channel_0`, `channel_1`
+            `ctrl_neutral1` | 牆壁開關(單火線單鍵版) | `channel_0`
+            `ctrl_neutral2` | 牆壁開關(單火線雙鍵版) | `channel_0`, `channel_1`
+            `curtain` | 智能窗簾 | `curtain_level`
+            `lumi.ctrl_dualchn` | 雙路控制器 | `channel_0`, `channel_1`
+            `dimmer.rgbegl01` | RGB調光控制器 | `power_status`, `light_rgb`, `light_level`
+            `ctrl_hvac.aq1` | 空調溫控器 | `on_off_cfg`, `mode_cfg`, `ws_cfg`, `temp_cfg`, `env_temp`, `on_off_status`
+            `airrtc.tcpecn01` | 空調溫控器 | `on_off_cfg`, `mode_cfg`, `ws_cfg`, `temp_cfg`, `env_temp`, `on_off_status`
+            `sensor_magnet.aq2` | 門窗傳感器 | `window_status`, `battery_voltage`
+            `sensor_motion.aq2` | 人體傳感器 | `lux`, `illumination`, `motion_status`, `battery_voltage`
+            `weather` | 溫濕度傳感器 | `temperature`, `humidity`, `pressure`, `battery_voltage`
+            `sensor_wleak.aq1` | 水浸傳感器 | `wleak_status`, `battery_voltage`
+            `sensor_switch` | 無線開關 | `button_0`, `battery_voltage`
+            `sensor_switch.aq2` | 無線開關 | `button_0`, `battery_voltage`
+            `sensor_switch.aq3` | 無線開關(升級版) | `button_0`, `battery_voltage`
+            `sensor_86sw1.aq1` | 86無線開關單鍵 | `button_0`, `battery_voltage`
+            `sensor_86sw2.aq1` | 86無線開關雙鍵 | `button_0`, `button_1`, `dual_channel`
+            `sensor_cube.aqgl01` | 魔方傳感器 | `cube_status`, `rotate_degree`, `detect_time`, `battery_voltage`
 
 
 ### 6. 暫停執行模組
