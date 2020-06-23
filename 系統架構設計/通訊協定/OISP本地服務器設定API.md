@@ -648,17 +648,17 @@ description: OISP Local Server Setup API
         [ { "gateways": [
               { "protocal": "UDP",
                 "port": "9898",
-                "sid": "50ec50c6ea1a",
+                "sid": "50ec5XXXXXXX",
                 "model": "acpartner.v3",
                 "proto_version": "2.0.2",
-                "ip": "192.168.1.153",
-                "token": "dLKqn54LjwcBqsz8"
+                "ip": "192.168.1.223",
+                "token": "dLKqn54LjXXXXXXX"
               }
             ],
             "xxconfig": [
               { "devList": {
-                  "01": "50ec50c6ea1a",
-                  "02": "158d0002f24482"
+                  "01": "50ec5XXXXXXX",
+                  "02": "158d000XXXXXXX"
                 },
                 "devices": {
                   "01": {
