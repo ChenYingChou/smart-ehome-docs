@@ -19,7 +19,7 @@ description: OISP Local Server Setup API
 
 ## 搜尋本地服務器及初始化
 
-1. 在區域網路中以 UDP【[尋找本地服務器](https://md.smart-ehome.com/oisp/系統架構設計/通訊協定/Web%20API.md#app-尋找本地服務器)】。
+1. 在區域網路中以 UDP【[尋找本地服務器](./Web%20API.md#app-尋找本地服務器)】。
 2. 解碼後得到<b id="json"></b>
     ```json
     {
@@ -114,7 +114,7 @@ description: OISP Local Server Setup API
     token=<舊通行令牌-選項>
     server=<本地服務器UUID>
     ```
-    + `<授權碼>`: 向系統管理者索取【[本地服務器的通行令牌](https://md.smart-ehome.com/oisp/系統架構設計/通訊協定/Web%20API.md#系統管理者取得新用戶的授權碼-get_authcode)】。若為新的系統尚無系統管理者則可省略本欄位。
+    + `<授權碼>`: 向系統管理者索取【[本地服務器的通行令牌](./Web%20API.md#系統管理者取得新用戶的授權碼-get_authcode)】。若為新的系統尚無系統管理者則可省略本欄位。
     + `token`: 本欄位為選項，若有時表示在舊通行令牌有效期間來換取新的通行令牌，此時可不理會 `authcode`。
     + `<本地服務器UUID>`: 請帶【[搜尋本地服務器](#搜尋本地服務器及初始化)】取得的 `server` 欄位值。
 2. 成功時返回 `payload` 的 `token` 將應用於隨後 API 中:
@@ -143,7 +143,7 @@ description: OISP Local Server Setup API
     ```
     + `token`: 通行令牌為溝通本地服務器的授權依據。
     + `CMauthcode`: 由 [雲端會員取得授權碼](#雲端會員取得授權碼) 第 4 或 5 項取得的 `authcode`。
-    + `region`: 地區，目前以網頁瀏覽語系識別代碼 [Web browser language identification codes](https://www.metamodpro.com/browser-language-codes) 表示之。主要用於本地主機行事曆區別及 MQTT 系統發出訊息用。若未指定則以瀏覽器語系為主，參見 [Web API 訊息語系](https://md.smart-ehome.com/oisp/系統架構設計/通訊協定/Web%20API.md#訊息語系-lang)。
+    + `region`: 地區，目前以網頁瀏覽語系識別代碼 [Web browser language identification codes](https://www.metamodpro.com/browser-language-codes) 表示之。主要用於本地主機行事曆區別及 MQTT 系統發出訊息用。若未指定則以瀏覽器語系為主，參見 [Web API 訊息語系](./Web%20API.md#訊息語系-lang)。
     + `server` 欄位為 UUID 格式，若格式不符則由雲端系統給定。此欄位會原封不動在返回結果中 (和 `status` 同一層)，可用以識別是由哪個送出的請求。沒有特殊需求時可省略本欄由系統決定。
     + `s_id` 欄位文數字 4 碼，若長度不符時由雲端系統給定。沒有特殊需求時可省略。主要用於 MQTT 通訊中，以節省傳輸量。
     + `s_id` 及 `server` 即使自行指定，但在雲端系統發現有衝突時會主動返回唯一的值。這些值會在返回結果的 `payload` 物件中。
